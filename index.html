@@ -312,41 +312,11 @@ footer {
   margin: 10px 0;
 }
 
-@media (max-width: 480px) {
-  .color-box {
-    width: 28px !important;
-    height: 28px !important;
-  }
-
-  .shift {
-    font-size: 0.85em !important;
-    margin: 4px 0 !important;
-  }
-
-  .shift .delete-btn {
-    opacity: 1 !important; /* Always visible for mobile */
-    font-size: 1.2em !important;
-    padding: 0 8px !important;
-  }
-
-  .day {
-    min-height: 120px !important;
-    padding: 8px !important;
-  }
-
-  .day-number {
-    font-size: 1.1em !important;
-  }
-
-  span[title="Drag all shifts of this day"] {
-    font-size: 1.2em !important;
-    padding: 0 6px !important;
-  }
-
+@media (max-width: 350px) {
   .calendar-grid {
     overflow-x: auto;
     display: grid;
-    grid-template-columns: repeat(7, minmax(80px, 1fr));
+    grid-template-columns: repeat(7, minmax(60px, 1fr));
   }
 }
 
