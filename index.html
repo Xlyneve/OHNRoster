@@ -70,18 +70,19 @@ header {
 
 /* Container layout */
 .container {
-  display: flex;
-  flex-wrap: wrap;
-  padding: 10px;
+  display: grid;
+  grid-template-columns: 150px 1fr; /* Reduced nurse list width */
   gap: 10px;
-  justify-content: center;
+  padding: 10px;
+  align-items: flex-start;
+  overflow-x: auto;
 }
 
 /* Nurse List */
 .nurse-list {
-  flex: 1 1 100px;
-  max-height: 500px;
+  max-width: 150px;
   overflow-y: auto;
+  max-height: calc(100vh - 180px);
 }
 
 .nurse {
@@ -107,8 +108,7 @@ header {
 }
 
 .color-box {
-  width: 18px;
-  height: 18px;
+  width: 18px; height: 18px;
   border-radius: 4px;
   cursor: pointer;
   border: 2px solid transparent;
@@ -189,6 +189,8 @@ header {
   border: 1px solid rgba(255, 255, 255, 0.4);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
   padding: 10px;
+  min-width: 840px;
+  overflow-x: auto;
 }
 
 .calendar-header {
@@ -216,15 +218,12 @@ header {
 /* Calendar layout */
 .weekdays {
   display: grid;
-  grid-template-columns: repeat(7, minmax(120px, 1fr)); /* same as calendar-grid */
+  grid-template-columns: repeat(7, minmax(120px, 1fr)); /* Match day columns */
   gap: 5px;
-  font-weight: regular;
   text-align: center;
   margin-bottom: 5px;
-  user-select: none;
-  min-width: 840px; /* ensures alignment with day grid */
+  min-width: 840px;
 }
-
 
 .weekdays div {
   padding: 5px 0;
@@ -235,8 +234,15 @@ header {
 
 .calendar-grid {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
+  grid-template-columns: repeat(7, minmax(120px, 1fr));
   gap: 5px;
+  min-width: 840px;
+}
+
+.calendar-scroll-wrapper {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin-bottom: 10px;
 }
 
 .day {
@@ -262,7 +268,6 @@ header {
 }
 
 .day-number {
-  font-weight: regular;
   margin-bottom: 5px;
   cursor: pointer;
   color: black;
@@ -313,26 +318,31 @@ footer {
   color: rgba(0, 0, 0, 0.5);
   margin: 10px 0;
 }
+
 /* Mobile adjustments */
 @media (max-width: 480px) {
   .container {
-    flex-direction: column;
-    align-items: stretch;
+    grid-template-columns: 120px 1fr;
+    gap: 5px;
   }
 
-  .nurse-list, .calendar {
-    width: 100%;
-    margin: 0 auto;
+  .nurse-list {
+    max-width: 120px;
   }
 
+  .calendar {
+    min-width: 720px;
+  }
+
+  .weekdays,
   .calendar-grid {
-    grid-template-columns: repeat(7, minmax(120px, 1fr));
-    min-width: 840px;
+    grid-template-columns: repeat(7, minmax(100px, 1fr));
+    min-width: 720px;
   }
 
   .color-box {
-    width: 28px !important;
-    height: 28px !important;
+    width: 24px !important;
+    height: 24px !important;
   }
 
   .shift {
@@ -360,8 +370,8 @@ footer {
     padding: 0 6px !important;
   }
 }
-
 </style>
+
 </head>
 <body>
 
