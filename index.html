@@ -216,13 +216,15 @@ header {
 /* Calendar layout */
 .weekdays {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
+  grid-template-columns: repeat(7, minmax(120px, 1fr)); /* same as calendar-grid */
   gap: 5px;
   font-weight: regular;
   text-align: center;
   margin-bottom: 5px;
   user-select: none;
+  min-width: 840px; /* ensures alignment with day grid */
 }
+
 
 .weekdays div {
   padding: 5px 0;
@@ -311,6 +313,52 @@ footer {
   color: rgba(0, 0, 0, 0.5);
   margin: 10px 0;
 }
+/* Mobile adjustments */
+@media (max-width: 480px) {
+  .container {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .nurse-list, .calendar {
+    width: 100%;
+    margin: 0 auto;
+  }
+
+  .calendar-grid {
+    grid-template-columns: repeat(7, minmax(120px, 1fr));
+    min-width: 840px;
+  }
+
+  .color-box {
+    width: 28px !important;
+    height: 28px !important;
+  }
+
+  .shift {
+    font-size: 0.75em !important;
+    margin: 4px 0 !important;
+  }
+
+  .shift .delete-btn {
+    opacity: 1 !important; /* Always visible for mobile */
+    font-size: 1.2em !important;
+    padding: 0 8px !important;
+  }
+
+  .day {
+    min-height: 90px !important;
+    padding: 6px !important;
+  }
+
+  .day-number {
+    font-size: 1em !important;
+  }
+
+  span[title="Drag all shifts of this day"] {
+    font-size: 1em !important;
+    padding: 0 6px !important;
+  }
 }
 
 </style>
@@ -353,17 +401,19 @@ footer {
       <h2 id="monthYear"></h2>
       <button class="btn" id="nextMonth">Next ▶</button>
     </div>
-    <div class="weekdays">
-      <div>Mon</div>
-      <div>Tue</div>
-      <div>Wed</div>
-      <div>Thu</div>
-      <div>Fri</div>
-      <div>Sat</div>
-      <div>Sun</div>
-    </div>
-    <div class="calendar-grid" id="calendarGrid"></div>
+    <div class="calendar-scroll-wrapper">
+  <div class="weekdays">
+    <div>Mon</div>
+    <div>Tue</div>
+    <div>Wed</div>
+    <div>Thu</div>
+    <div>Fri</div>
+    <div>Sat</div>
+    <div>Sun</div>
   </div>
+  <div class="calendar-grid" id="calendarGrid"></div>
+</div>
+
 </div>
 <div class="calendar-scroll-wrapper">
   <div class="calendar-grid" id="calendarGrid"></div>
