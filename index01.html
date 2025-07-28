@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Nurses Roster</title>
 <style>
- body {
+body {
   font-family: Arial, sans-serif;
   margin: 0;
   padding: 0;
@@ -55,7 +55,7 @@ body::after {
   padding: 10px;
 }
 
-/* Header with glass effect */
+/* Header */
 header {
   background: rgba(255, 152, 0, 0.1);
   backdrop-filter: blur(20px);
@@ -71,7 +71,7 @@ header {
 /* Container layout */
 .container {
   display: grid;
-  grid-template-columns: 150px 1fr; /* Reduced nurse list width */
+  grid-template-columns: 150px 1fr;
   gap: 10px;
   padding: 10px;
   align-items: flex-start;
@@ -189,8 +189,8 @@ header {
   border: 1px solid rgba(255, 255, 255, 0.4);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
   padding: 10px;
-  min-width: 840px;
-  overflow-x: auto;
+  width: 100%;
+  overflow-x: hidden;
 }
 
 .calendar-header {
@@ -218,38 +218,40 @@ header {
 /* Calendar layout */
 .weekdays {
   display: grid;
-  grid-template-columns: repeat(7, minmax(120px, 1fr)); /* Match day columns */
+  grid-template-columns: repeat(7, 1fr);
   gap: 5px;
   text-align: center;
   margin-bottom: 5px;
-  min-width: 840px;
+  width: 100%;
 }
 
 .weekdays div {
-  padding: 5px 0;
+  padding: 8px 0;
   background: rgba(255, 152, 0, 0.2);
   border-radius: 4px;
   border: 1px solid rgba(255, 152, 0, 0.3);
+  font-size: 1rem;
+  font-weight: bold;
 }
 
 .calendar-grid {
   display: grid;
-  grid-template-columns: repeat(7, minmax(120px, 1fr));
+  grid-template-columns: repeat(7, 1fr);
   gap: 5px;
-  min-width: 840px;
+  width: 100%;
 }
 
 .calendar-scroll-wrapper {
-  overflow-x: auto;
+  overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
   margin-bottom: 10px;
 }
 
 .day {
-  padding: 5px;
+  padding: 10px;
   border: 1px solid rgba(255, 152, 0, 0.35);
   border-radius: 8px;
-  min-height: 100px;
+  min-height: 140px;
   background: rgba(255, 255, 255, 0.35);
   backdrop-filter: blur(10px) saturate(160%);
   -webkit-backdrop-filter: blur(10px) saturate(160%);
@@ -271,14 +273,15 @@ header {
   margin-bottom: 5px;
   cursor: pointer;
   color: black;
+  font-size: 1.1rem;
 }
 
 .day-note {
-  font-size: 0.75em;
+  font-size: 0.8em;
   color: black;
   background-color: #fdfd96;
   margin-left: 5px;
-  padding: 1px 5px;
+  padding: 2px 5px;
   border-radius: 3px;
   user-select: none;
 }
@@ -297,13 +300,13 @@ header {
 }
 
 .shift .delete-btn {
-  font-size: 0.9em;
+  font-size: 1.2em !important;
   margin-left: 5px;
   color: #fff;
   background: rgba(0, 0, 0, 0.3);
   border-radius: 50%;
-  padding: 0 6px;
-  opacity: 0;
+  padding: 0 8px !important;
+  opacity: 1;
   transition: opacity 0.2s ease;
   user-select: none;
 }
@@ -312,11 +315,99 @@ header {
   opacity: 1;
 }
 
+/* Footer stays at bottom */
 footer {
   text-align: center;
   font-size: 0.8rem;
   color: rgba(0, 0, 0, 0.5);
-  margin: 10px 0;
+  padding: 10px 0;
+  /* Make sure footer does not move */
+  flex-shrink: 0;
+}
+html, body {
+  height: auto;        /* Let page height grow naturally */
+  min-height: 100%;    /* At least full viewport */
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;  /* No horizontal scroll */
+  overflow-y: auto;    /* Enable vertical scroll */
+  box-sizing: border-box;
+}
+/* VIEW MODE: Hide nurse list */
+body.view-mode .nurse-list {
+  display: none;
+}
+/* Hide nurse list in view mode */
+body.view-mode .nurse-list {
+  display: none;
+}
+
+body.view-mode .container {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  width: 100vw;
+  padding: 10px;
+  box-sizing: border-box;
+  height: auto;        /* Allow container to grow with content */
+  overflow: visible;   /* No scroll here */
+}
+
+body.view-mode .calendar {
+  width: 100%;
+  max-width: none;
+  min-width: 0;
+  margin: 0 auto 20px;
+  padding: 10px;
+  height: auto;         /* Let calendar height grow */
+  overflow: visible;    /* No internal scroll */
+  box-sizing: border-box;
+}
+body.view-mode .calendar-scroll-wrapper {
+  overflow: visible;
+  max-height: none;
+  height: auto;
+  margin-bottom: 0;
+}
+
+/* Footer styles */
+footer {
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  text-align: center;       /* center footer text */
+  padding: 10px 0;
+  box-sizing: border-box;
+  position: relative;       /* normal flow */
+}
+
+/* Prevent horizontal scroll on whole page */
+body {
+  overflow-x: hidden;
+  margin: 0;
+  padding: 0;
+}
+body.view-mode {
+  overflow-y: auto;  /* or just remove any overflow:hidden */
+}
+body.view-mode .calendar-grid {
+  height: auto;
+  overflow: visible;
+}
+
+body.view-mode .weekdays,
+body.view-mode .calendar-grid {
+  grid-template-columns: repeat(7, 1fr);
+  width: 100%;
+}
+
+body.view-mode .day {
+  min-height: 150px;
+  font-size: 1rem;
+}
+/* Optional: make sure body does not scroll */
+body.view-mode {
+  overflow: hidden;
 }
 
 /* Mobile adjustments */
@@ -340,22 +431,6 @@ footer {
     min-width: 720px;
   }
 
-  .color-box {
-    width: 24px !important;
-    height: 24px !important;
-  }
-
-  .shift {
-    font-size: 0.75em !important;
-    margin: 4px 0 !important;
-  }
-
-  .shift .delete-btn {
-    opacity: 1 !important; /* Always visible for mobile */
-    font-size: 1.2em !important;
-    padding: 0 8px !important;
-  }
-
   .day {
     min-height: 90px !important;
     padding: 6px !important;
@@ -364,13 +439,9 @@ footer {
   .day-number {
     font-size: 1em !important;
   }
-
-  span[title="Drag all shifts of this day"] {
-    font-size: 1em !important;
-    padding: 0 6px !important;
-  }
 }
 </style>
+
 
 </head>
 <body>
@@ -433,428 +504,434 @@ footer {
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import {
-  getFirestore, doc, setDoc, getDoc
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-import {
-  getAuth,
-  onAuthStateChanged,
-  signInWithEmailAndPassword,
-  signOut
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+  import {
+    getFirestore, doc, setDoc, getDoc
+  } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+  import {
+    getAuth,
+    onAuthStateChanged,
+    signInWithEmailAndPassword,
+    signOut
+  } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-const firebaseConfig = {
-  apiKey: "AIzaSyBZtCGzOb_5klWvVo-2fU7Wp2vnUakA4Rc",
-  authDomain: "ohnurse-43369.firebaseapp.com",
-  projectId: "ohnurse-43369",
-  storageBucket: "ohnurse-43369.firebasestorage.app",
-  messagingSenderId: "1041626418661",
-  appId: "1:1041626418661:web:1d9aeffb23a33baf9c730c",
-  measurementId: "G-ZHKSXSTTXR"
-};
+  const firebaseConfig = {
+    apiKey: "AIzaSyBZtCGzOb_5klWvVo-2fU7Wp2vnUakA4Rc",
+    authDomain: "ohnurse-43369.firebaseapp.com",
+    projectId: "ohnurse-43369",
+    storageBucket: "ohnurse-43369.firebasestorage.app",
+    messagingSenderId: "1041626418661",
+    appId: "1:1041626418661:web:1d9aeffb23a33baf9c730c",
+    measurementId: "G-ZHKSXSTTXR"
+  };
 
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-const auth = getAuth(app);
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  const auth = getAuth(app);
 
-const emailInput = document.getElementById('emailInput');
-const passwordInput = document.getElementById('passwordInput');
-const loginBtn = document.getElementById('loginBtn');
-const logoutBtn = document.getElementById('logoutBtn');
-const userStatus = document.getElementById('userStatus');
+  const emailInput = document.getElementById('emailInput');
+  const passwordInput = document.getElementById('passwordInput');
+  const loginBtn = document.getElementById('loginBtn');
+  const logoutBtn = document.getElementById('logoutBtn');
+  const userStatus = document.getElementById('userStatus');
 
-const calendarGrid = document.getElementById('calendarGrid');
-const monthYear = document.getElementById('monthYear');
-const prevMonthBtn = document.getElementById('prevMonth');
-const nextMonthBtn = document.getElementById('nextMonth');
-const nurseContainer = document.getElementById('nurseContainer');
-const newNurseName = document.getElementById('newNurseName');
-const addNurseBtn = document.getElementById('addNurseBtn');
+  const calendarGrid = document.getElementById('calendarGrid');
+  const monthYear = document.getElementById('monthYear');
+  const prevMonthBtn = document.getElementById('prevMonth');
+  const nextMonthBtn = document.getElementById('nextMonth');
+  const nurseContainer = document.getElementById('nurseContainer');
+  const newNurseName = document.getElementById('newNurseName');
+  const addNurseBtn = document.getElementById('addNurseBtn');
 
-let currentUser = null;
-let canEdit = false;  // controls if editing is allowed
+  let currentUser = null;
+  let canEdit = false;  // controls if editing is allowed
 
-// Put your authorized UIDs here for editing rights
-const authorizedUIDs = [
-  "xEda6HcmfLT16EtTiznHy3FAesj1",  // your UID
-  "OEjMA3NNeFQGP62Yohk5DliXqwH2"  // add staff UIDs here
-];
+  // Authorized UIDs for editing rights
+  const authorizedUIDs = [
+    "xEda6HcmfLT16EtTiznHy3FAesj1",  // your UID
+    "OEjMA3NNeFQGP62Yohk5DliXqwH2"   // add staff UIDs here
+  ];
 
-let roster = {};
-let nurses = [
-  { name: "Alice", color: "#ff9800" },
-  { name: "Bob", color: "#e65100" },
-  { name: "Carol", color: "#f57c00" }
-];
-let selectedNurseIndex = null;
-let currentDate = new Date();
+  let roster = {};
+  let nurses = [
+    { name: "Alice", color: "#ff9800" },
+    { name: "Bob", color: "#e65100" },
+    { name: "Carol", color: "#f57c00" }
+  ];
+  let selectedNurseIndex = null;
+  let currentDate = new Date();
 
-/** ---------- Authentication ---------- **/
-loginBtn.addEventListener('click', async () => {
-  const email = emailInput.value.trim();
-  const password = passwordInput.value;
-  if (!email || !password) {
-    alert('Please enter email and password');
-    return;
-  }
-  try {
-    const userCredential = await signInWithEmailAndPassword(auth, email, password);
-    currentUser = userCredential.user;
+  /** ---------- Authentication ---------- **/
+  loginBtn.addEventListener('click', async () => {
+    const email = emailInput.value.trim();
+    const password = passwordInput.value;
+    if (!email || !password) {
+      alert('Please enter email and password');
+      return;
+    }
+    try {
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      currentUser = userCredential.user;
+      updateUIOnAuth();
+    } catch (error) {
+      alert('Login failed: ' + error.message);
+    }
+  });
+
+  logoutBtn.addEventListener('click', async () => {
+    await signOut(auth);
+    currentUser = null;
     updateUIOnAuth();
-  } catch (error) {
-    alert('Login failed: ' + error.message);
+  });
+
+  onAuthStateChanged(auth, (user) => {
+    currentUser = user;
+    updateUIOnAuth();
+  });
+
+  function updateUIOnAuth() {
+    if (currentUser) {
+      userStatus.textContent = `Signed in as ${currentUser.email}`;
+      loginBtn.style.display = 'none';
+      emailInput.style.display = 'none';
+      passwordInput.style.display = 'none';
+      logoutBtn.style.display = 'inline-block';
+    } else {
+      userStatus.textContent = 'Not signed in';
+      loginBtn.style.display = 'inline-block';
+      emailInput.style.display = 'inline-block';
+      passwordInput.style.display = 'inline-block';
+      logoutBtn.style.display = 'none';
+    }
+    checkEditPermission();
+    loadData();
   }
-});
 
-logoutBtn.addEventListener('click', async () => {
-  await signOut(auth);
-  currentUser = null;
-  updateUIOnAuth();
-});
-
-onAuthStateChanged(auth, (user) => {
-  currentUser = user;
-  updateUIOnAuth();
-});
-
-function updateUIOnAuth() {
-  if (currentUser) {
-    userStatus.textContent = `Signed in as ${currentUser.email}`;
-    loginBtn.style.display = 'none';
-    emailInput.style.display = 'none';
-    passwordInput.style.display = 'none';
-    logoutBtn.style.display = 'inline-block';
-  } else {
-    userStatus.textContent = 'Not signed in';
-    loginBtn.style.display = 'inline-block';
-    emailInput.style.display = 'inline-block';
-    passwordInput.style.display = 'inline-block';
-    logoutBtn.style.display = 'none';
+  function checkEditPermission() {
+    canEdit = currentUser && authorizedUIDs.includes(currentUser.uid);
+    toggleEditUI();
   }
-  checkEditPermission();
-  loadData();
-}
 
-function checkEditPermission() {
-  if (!currentUser) {
-    canEdit = false;
-  } else {
-    canEdit = authorizedUIDs.includes(currentUser.uid);
-  }
-  toggleEditUI();
-}
-
-function toggleEditUI() {
+  function toggleEditUI() {
   addNurseBtn.disabled = !canEdit;
   newNurseName.disabled = !canEdit;
   addNurseBtn.style.opacity = canEdit ? '1' : '0.5';
   newNurseName.style.opacity = canEdit ? '1' : '0.5';
+
+  // Hide nurse list unless logged in
+  const nurseList = document.querySelector('.nurse-list');
+  nurseList.style.display = currentUser ? 'block' : 'none';
+
+  // Add or remove view-mode class
+  if (!currentUser) {
+    document.body.classList.add('view-mode');
+  } else {
+    document.body.classList.remove('view-mode');
+  }
+
   renderNurseList();
   renderCalendar();
 }
 
-/** ---------- Firebase Data ---------- **/
-async function loadData() {
-  try {
-    const docRef = doc(db, "nursesRoster", "main");
-    const docSnap = await getDoc(docRef);
-    if (docSnap.exists()) {
-      const data = docSnap.data();
-      roster = data.roster || {};
-      nurses = data.nurses || nurses;
-    }
-    renderNurseList();
-    renderCalendar();
-  } catch (error) {
-    console.error("Failed to load data from Firestore:", error);
-    alert("Failed to load data from Firestore. Check console.");
-  }
-}
 
-async function saveData() {
-  if (!canEdit) {
-    alert("You do not have permission to edit.");
-    return;
-  }
-  try {
-    await setDoc(doc(db, "nursesRoster", "main"), { roster, nurses });
-  } catch (error) {
-    console.error("Error saving data:", error);
-    alert("Failed to save data. Check console.");
-  }
-}
-
-/** ---------- Nurse List ---------- **/
-function renderNurseList() {
-  nurseContainer.innerHTML = '';
-  nurses.forEach((nurse, idx) => {
-    const div = document.createElement('div');
-    div.classList.add('nurse');
-    if (selectedNurseIndex === idx) div.classList.add('selected');
-
-    const infoDiv = document.createElement('div');
-    infoDiv.classList.add('nurse-info');
-
-    const colorBox = document.createElement('div');
-    colorBox.classList.add('color-box');
-    colorBox.style.background = nurse.color;
-
-    const colorPicker = document.createElement('input');
-    colorPicker.type = 'color';
-    colorPicker.value = nurse.color;
-    colorPicker.classList.add('color-picker');
-
-    colorBox.addEventListener('click', (e) => {
-      e.stopPropagation();
-      document.querySelectorAll('.color-picker').forEach(p => {
-        if (p !== colorPicker) p.style.display = 'none';
-      });
-      if (!canEdit) return;
-      colorPicker.style.display = colorPicker.style.display === 'block' ? 'none' : 'block';
-    });
-
-    colorPicker.addEventListener('input', (e) => {
-      if (!canEdit) return;
-      nurse.color = e.target.value;
-      saveData();
-      renderNurseList();
-      renderCalendar();
-    });
-
-    infoDiv.appendChild(colorBox);
-    infoDiv.appendChild(document.createTextNode(nurse.name));
-
-    infoDiv.addEventListener('click', () => {
-      if (!canEdit) return;
-      selectedNurseIndex = idx;
-      renderNurseList();
-    });
-
-    div.appendChild(infoDiv);
-    div.appendChild(colorPicker);
-
-    const deleteBtn = document.createElement('span');
-    deleteBtn.textContent = '✖';
-    deleteBtn.classList.add('delete-btn');
-    deleteBtn.title = "Delete Nurse";
-    deleteBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      if (!canEdit) {
-        alert("You do not have permission to delete nurses.");
-        return;
+  /** ---------- Firebase Data ---------- **/
+  async function loadData() {
+    try {
+      const docRef = doc(db, "nursesRoster", "main");
+      const docSnap = await getDoc(docRef);
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        roster = data.roster || {};
+        nurses = data.nurses || nurses;
       }
-      nurses.splice(idx, 1);
-      if (selectedNurseIndex === idx) selectedNurseIndex = null;
-      saveData();
       renderNurseList();
       renderCalendar();
-    });
-
-    div.appendChild(deleteBtn);
-    nurseContainer.appendChild(div);
-  });
-}
-
-function getRandomColor() {
-  const colors = ['#ff9800', '#e65100', '#f57c00', '#ffb74d', '#ef6c00'];
-  return colors[Math.floor(Math.random() * colors.length)];
-}
-
-addNurseBtn.addEventListener('click', () => {
-  if (!canEdit) {
-    alert("You do not have permission to add nurses.");
-    return;
+    } catch (error) {
+      console.error("Failed to load data from Firestore:", error);
+      alert("Failed to load data from Firestore. Check console.");
+    }
   }
-  const name = newNurseName.value.trim();
-  if (name) {
-    nurses.push({ name, color: getRandomColor() });
-    newNurseName.value = '';
-    saveData();
-    renderNurseList();
-  }
-});
 
-/** ---------- Calendar ---------- **/
-function createShiftElement(shift, key, shiftIndex) {
-  const shiftDiv = document.createElement('div');
-  shiftDiv.classList.add('shift');
-  shiftDiv.style.background = shift.color;
-  shiftDiv.textContent = `${shift.name}: ${shift.time}`;
-  shiftDiv.draggable = canEdit;
-
-  const deleteShift = document.createElement('span');
-  deleteShift.classList.add('delete-btn');
-  deleteShift.textContent = '✖';
-  deleteShift.title = "Delete Shift";
-  deleteShift.style.opacity = canEdit ? '0' : '0';
-
-  deleteShift.addEventListener('click', (e) => {
-    e.stopPropagation();
+  async function saveData() {
     if (!canEdit) {
-      alert("You do not have permission to delete shifts.");
+      alert("You do not have permission to edit.");
       return;
     }
-    roster[key].shifts.splice(shiftIndex, 1);
-    saveData();
-    renderCalendar();
-  });
-
-  shiftDiv.appendChild(deleteShift);
-
-  if (canEdit) {
-    shiftDiv.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const newTime = prompt('Edit shift time:', shift.time);
-      if (newTime !== null) {
-        shift.time = newTime;
-        saveData();
-        renderCalendar();
-      }
-    });
-
-    shiftDiv.addEventListener('dragstart', (e) => {
-      e.dataTransfer.setData('text/plain', JSON.stringify(shift));
-    });
-
-    shiftDiv.addEventListener('mouseenter', () => deleteShift.style.opacity = '1');
-    shiftDiv.addEventListener('mouseleave', () => deleteShift.style.opacity = '0');
+    try {
+      await setDoc(doc(db, "nursesRoster", "main"), { roster, nurses });
+    } catch (error) {
+      console.error("Error saving data:", error);
+      alert("Failed to save data. Check console.");
+    }
   }
 
-  return shiftDiv;
-}
+  /** ---------- Nurse List ---------- **/
+  function renderNurseList() {
+    nurseContainer.innerHTML = '';
+    nurses.forEach((nurse, idx) => {
+      const div = document.createElement('div');
+      div.classList.add('nurse');
+      if (selectedNurseIndex === idx) div.classList.add('selected');
 
-function renderDayCell(year, month, day) {
-  const key = `${year}-${month}-${day}`;
-  if (!roster[key]) roster[key] = { shifts: [], notes: '' };
+      const infoDiv = document.createElement('div');
+      infoDiv.classList.add('nurse-info');
 
-  const dayCell = document.createElement('div');
-  dayCell.classList.add('day');
+      const colorBox = document.createElement('div');
+      colorBox.classList.add('color-box');
+      colorBox.style.background = nurse.color;
 
-  const date = new Date(year, month, day);
-  if (date.getDay() === 0 || date.getDay() === 6) dayCell.classList.add('weekend');
+      const colorPicker = document.createElement('input');
+      colorPicker.type = 'color';
+      colorPicker.value = nurse.color;
+      colorPicker.classList.add('color-picker');
 
-  const dayNumber = document.createElement('div');
-  dayNumber.classList.add('day-number');
-  dayNumber.innerHTML = day + (roster[key].notes ? `<span class="day-note">${roster[key].notes}</span>` : '');
-  dayNumber.addEventListener('click', (e) => {
-    e.stopPropagation();
-    if (!canEdit) return;
-    const note = prompt('Enter notes for this day:', roster[key].notes || '');
-    if (note !== null) {
-      roster[key].notes = note;
+      colorBox.addEventListener('click', (e) => {
+        e.stopPropagation();
+        document.querySelectorAll('.color-picker').forEach(p => {
+          if (p !== colorPicker) p.style.display = 'none';
+        });
+        if (!canEdit) return;
+        colorPicker.style.display = colorPicker.style.display === 'block' ? 'none' : 'block';
+      });
+
+      colorPicker.addEventListener('input', (e) => {
+        if (!canEdit) return;
+        nurse.color = e.target.value;
+        saveData();
+        renderNurseList();
+        renderCalendar();
+      });
+
+      infoDiv.appendChild(colorBox);
+      infoDiv.appendChild(document.createTextNode(nurse.name));
+
+      infoDiv.addEventListener('click', () => {
+        if (!canEdit) return;
+        selectedNurseIndex = idx;
+        renderNurseList();
+      });
+
+      div.appendChild(infoDiv);
+      div.appendChild(colorPicker);
+
+      const deleteBtn = document.createElement('span');
+      deleteBtn.textContent = '✖';
+      deleteBtn.classList.add('delete-btn');
+      deleteBtn.title = "Delete Nurse";
+      deleteBtn.style.display = canEdit ? 'inline-block' : 'none';
+      deleteBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (!canEdit) {
+          alert("You do not have permission to delete nurses.");
+          return;
+        }
+        nurses.splice(idx, 1);
+        if (selectedNurseIndex === idx) selectedNurseIndex = null;
+        saveData();
+        renderNurseList();
+        renderCalendar();
+      });
+
+      div.appendChild(deleteBtn);
+      nurseContainer.appendChild(div);
+    });
+  }
+
+  function getRandomColor() {
+    const colors = ['#ff9800', '#e65100', '#f57c00', '#ffb74d', '#ef6c00'];
+    return colors[Math.floor(Math.random() * colors.length)];
+  }
+
+  addNurseBtn.addEventListener('click', () => {
+    if (!canEdit) {
+      alert("You do not have permission to add nurses.");
+      return;
+    }
+    const name = newNurseName.value.trim();
+    if (name) {
+      nurses.push({ name, color: getRandomColor() });
+      newNurseName.value = '';
       saveData();
-      renderCalendar();
+      renderNurseList();
     }
   });
 
-  const dragHandle = document.createElement('span');
-  dragHandle.textContent = '⇅';
-  dragHandle.style.cursor = canEdit ? 'grab' : 'default';
-  dragHandle.title = 'Drag all shifts of this day';
-  dragHandle.draggable = canEdit;
+  /** ---------- Calendar ---------- **/
+  function createShiftElement(shift, key, shiftIndex) {
+    const shiftDiv = document.createElement('div');
+    shiftDiv.classList.add('shift');
+    shiftDiv.style.background = shift.color;
+    shiftDiv.textContent = `${shift.name}: ${shift.time}`;
+    shiftDiv.draggable = canEdit;
 
-  if (canEdit) {
-    dragHandle.addEventListener('dragstart', (e) => {
+    const deleteShift = document.createElement('span');
+    deleteShift.classList.add('delete-btn');
+    deleteShift.textContent = '✖';
+    deleteShift.title = "Delete Shift";
+    deleteShift.style.display = canEdit ? 'inline-block' : 'none';
+
+    deleteShift.addEventListener('click', (e) => {
       e.stopPropagation();
-      const allShifts = roster[key].shifts || [];
-      e.dataTransfer.setData('text/day-shifts', JSON.stringify(allShifts));
-    });
-  }
-
-  const header = document.createElement('div');
-  header.style.display = 'flex';
-  header.style.justifyContent = 'space-between';
-  header.style.alignItems = 'center';
-  header.appendChild(dayNumber);
-  header.appendChild(dragHandle);
-
-  dayCell.appendChild(header);
-
-  if (canEdit) {
-    dayCell.addEventListener('click', (e) => {
-      if (e.target === dayNumber || e.target === dragHandle) return;
-      if (selectedNurseIndex === null) {
-        alert('Please select a nurse first!');
+      if (!canEdit) {
+        alert("You do not have permission to delete shifts.");
         return;
       }
-      const time = prompt('Enter shift time (e.g., 7AM-3PM):');
-      if (time) {
-        const nurse = nurses[selectedNurseIndex];
-        roster[key].shifts.push({
-          name: nurse.name,
-          color: nurse.color,
-          time
-        });
+      roster[key].shifts.splice(shiftIndex, 1);
+      saveData();
+      renderCalendar();
+    });
+
+    shiftDiv.appendChild(deleteShift);
+
+    if (canEdit) {
+      shiftDiv.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const newTime = prompt('Edit shift time:', shift.time);
+        if (newTime !== null) {
+          shift.time = newTime;
+          saveData();
+          renderCalendar();
+        }
+      });
+
+      shiftDiv.addEventListener('dragstart', (e) => {
+        e.dataTransfer.setData('text/plain', JSON.stringify(shift));
+      });
+    }
+
+    return shiftDiv;
+  }
+
+  function renderDayCell(year, month, day) {
+    const key = `${year}-${month}-${day}`;
+    if (!roster[key]) roster[key] = { shifts: [], notes: '' };
+
+    const dayCell = document.createElement('div');
+    dayCell.classList.add('day');
+
+    const date = new Date(year, month, day);
+    if (date.getDay() === 0 || date.getDay() === 6) dayCell.classList.add('weekend');
+
+    const dayNumber = document.createElement('div');
+    dayNumber.classList.add('day-number');
+    dayNumber.innerHTML = day + (roster[key].notes ? `<span class="day-note">${roster[key].notes}</span>` : '');
+    dayNumber.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (!canEdit) return;
+      const note = prompt('Enter notes for this day:', roster[key].notes || '');
+      if (note !== null) {
+        roster[key].notes = note;
         saveData();
         renderCalendar();
       }
     });
+
+    const dragHandle = document.createElement('span');
+    dragHandle.textContent = '⇅';
+    dragHandle.style.cursor = canEdit ? 'grab' : 'default';
+    dragHandle.title = 'Drag all shifts of this day';
+    dragHandle.draggable = canEdit;
+
+    if (canEdit) {
+      dragHandle.addEventListener('dragstart', (e) => {
+        e.stopPropagation();
+        const allShifts = roster[key].shifts || [];
+        e.dataTransfer.setData('text/day-shifts', JSON.stringify(allShifts));
+      });
+    }
+
+    const header = document.createElement('div');
+    header.style.display = 'flex';
+    header.style.justifyContent = 'space-between';
+    header.style.alignItems = 'center';
+    header.appendChild(dayNumber);
+    header.appendChild(dragHandle);
+
+    dayCell.appendChild(header);
+
+    if (canEdit) {
+      dayCell.addEventListener('click', (e) => {
+        if (e.target === dayNumber || e.target === dragHandle) return;
+        if (selectedNurseIndex === null) {
+          alert('Please select a nurse first!');
+          return;
+        }
+        const time = prompt('Enter shift time (e.g., 7AM-3PM):');
+        if (time) {
+          const nurse = nurses[selectedNurseIndex];
+          roster[key].shifts.push({
+            name: nurse.name,
+            color: nurse.color,
+            time
+          });
+          saveData();
+          renderCalendar();
+        }
+      });
+    }
+
+    roster[key].shifts.forEach((shift, i) => {
+      dayCell.appendChild(createShiftElement(shift, key, i));
+    });
+
+    if (canEdit) {
+      dayCell.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dayCell.style.background = '#ffe0b2';
+      });
+      dayCell.addEventListener('dragleave', () => dayCell.style.background = '');
+      dayCell.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dayCell.style.background = '';
+        const dayShiftsData = e.dataTransfer.getData('text/day-shifts');
+        if (dayShiftsData) {
+          const shifts = JSON.parse(dayShiftsData);
+          roster[key].shifts = roster[key].shifts.concat(shifts);
+          saveData();
+          renderCalendar();
+          return;
+        }
+        const shiftData = e.dataTransfer.getData('text/plain');
+        if (shiftData) {
+          const shift = JSON.parse(shiftData);
+          roster[key].shifts.push(shift);
+          saveData();
+          renderCalendar();
+        }
+      });
+    }
+
+    return dayCell;
   }
 
-  roster[key].shifts.forEach((shift, i) => {
-    dayCell.appendChild(createShiftElement(shift, key, i));
+  function renderCalendar() {
+    calendarGrid.innerHTML = '';
+    const year = currentDate.getFullYear();
+    const month = currentDate.getMonth();
+
+    const firstDay = new Date(year, month, 1).getDay();
+    const adjustedFirstDay = (firstDay === 0) ? 6 : firstDay - 1;
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+    monthYear.textContent = currentDate.toLocaleString('default', { month: 'long' }) + ' ' + year;
+
+    for (let i = 0; i < adjustedFirstDay; i++) {
+      calendarGrid.appendChild(document.createElement('div'));
+    }
+
+    for (let day = 1; day <= daysInMonth; day++) {
+      calendarGrid.appendChild(renderDayCell(year, month, day));
+    }
+  }
+
+  prevMonthBtn.addEventListener('click', () => {
+    currentDate.setMonth(currentDate.getMonth() - 1);
+    renderCalendar();
   });
 
-  if (canEdit) {
-    dayCell.addEventListener('dragover', (e) => {
-      e.preventDefault();
-      dayCell.style.background = '#ffe0b2';
-    });
-    dayCell.addEventListener('dragleave', () => dayCell.style.background = '');
-    dayCell.addEventListener('drop', (e) => {
-      e.preventDefault();
-      dayCell.style.background = '';
-      const dayShiftsData = e.dataTransfer.getData('text/day-shifts');
-      if (dayShiftsData) {
-        const shifts = JSON.parse(dayShiftsData);
-        roster[key].shifts = roster[key].shifts.concat(shifts);
-        saveData();
-        renderCalendar();
-        return;
-      }
-      const shiftData = e.dataTransfer.getData('text/plain');
-      if (shiftData) {
-        const shift = JSON.parse(shiftData);
-        roster[key].shifts.push(shift);
-        saveData();
-        renderCalendar();
-      }
-    });
-  }
-
-  return dayCell;
-}
-
-function renderCalendar() {
-  calendarGrid.innerHTML = '';
-  const year = currentDate.getFullYear();
-  const month = currentDate.getMonth();
-
-  const firstDay = new Date(year, month, 1).getDay();
-  const adjustedFirstDay = (firstDay === 0) ? 6 : firstDay - 1;
-  const daysInMonth = new Date(year, month + 1, 0).getDate();
-
-  monthYear.textContent = currentDate.toLocaleString('default', { month: 'long' }) + ' ' + year;
-
-  for (let i = 0; i < adjustedFirstDay; i++) {
-    calendarGrid.appendChild(document.createElement('div'));
-  }
-
-  for (let day = 1; day <= daysInMonth; day++) {
-    calendarGrid.appendChild(renderDayCell(year, month, day));
-  }
-}
-
-prevMonthBtn.addEventListener('click', () => {
-  currentDate.setMonth(currentDate.getMonth() - 1);
-  renderCalendar();
-});
-
-nextMonthBtn.addEventListener('click', () => {
-  currentDate.setMonth(currentDate.getMonth() + 1);
-  renderCalendar();
-});
-
+  nextMonthBtn.addEventListener('click', () => {
+    currentDate.setMonth(currentDate.getMonth() + 1);
+    renderCalendar();
+  });
 </script>
 
 
