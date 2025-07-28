@@ -416,6 +416,11 @@ body.view-mode {
     overflow-x: auto !important;    /* Enable horizontal scroll in view mode */
     -webkit-overflow-scrolling: touch;
   }
+   body.view-mode .calendar {
+    transform: scale(0.7); /* adjust scale as needed */
+    transform-origin: top left;
+    transition: transform 0.3s ease;
+  }
 
   body.view-mode .container {
     display: block;
