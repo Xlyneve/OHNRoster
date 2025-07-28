@@ -412,47 +412,46 @@ body.view-mode {
 }
 
 @media (max-width: 480px) {
-  body {
-    overflow-x: auto !important;    /* Enable horizontal scrolling on mobile */
+  body.view-mode {
+    overflow-x: auto !important;    /* Enable horizontal scroll in view mode */
     -webkit-overflow-scrolling: touch;
   }
 
-  .container {
-    display: block;                 /* Stack contents vertically */
-    width: max-content;             /* Expand container width to fit contents */
-    overflow-x: auto;              /* Allow horizontal scrolling */
+  body.view-mode .container {
+    display: block;
+    width: max-content;
+    overflow-x: auto;
     -webkit-overflow-scrolling: touch;
-    white-space: nowrap;           /* Prevent line breaks inside container */
-    padding: 10px 0;               /* Optional: some vertical padding */
-    margin: 0 auto;                /* Center container horizontally */
+    white-space: nowrap;
+    padding: 10px 0;
+    margin: 0 auto;
   }
 
-  .nurse-list {
-    display: inline-block;         /* Place nurse list inline */
+  body.view-mode .nurse-list {
+    display: inline-block;
     min-width: 150px;
     vertical-align: top;
-    white-space: normal;           /* Allow text wrapping inside nurse list */
-    margin-right: 10px;            /* Spacing between nurse list and calendar */
+    white-space: normal;
+    margin-right: 10px;
   }
 
-  .calendar {
-    display: inline-block;         /* Place calendar inline with nurse list */
-    min-width: 720px;              /* Force wide calendar width */
+  body.view-mode .calendar {
+    display: inline-block;
+    min-width: 720px;
     vertical-align: top;
     white-space: normal;
   }
 
-  .weekdays,
-  .calendar-grid {
+  body.view-mode .weekdays,
+  body.view-mode .calendar-grid {
     grid-template-columns: repeat(7, 1fr);
-    min-width: 720px;              /* Keep full width for calendar grid */
+    min-width: 720px;
   }
 
-  .day {
+  body.view-mode .day {
     min-height: 100px;
   }
 }
-
 
 
 
