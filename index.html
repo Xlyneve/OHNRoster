@@ -410,32 +410,45 @@ body.view-mode {
   overflow-x: hidden; /* Still no horizontal scroll */
 }
 
-
 @media (max-width: 480px) {
-  .container {
-    display: block;
-    overflow-x: auto;       /* Allow horizontal scroll */
+  body {
+    overflow-x: auto !important;    /* Enable horizontal scrolling on mobile */
     -webkit-overflow-scrolling: touch;
-    white-space: nowrap;    /* Keep layout in one row */
   }
 
-  .calendar {
-    min-width: 720px;       /* Keep full desktop width */
-    display: inline-block;  /* Allow horizontal scroll */
-    vertical-align: top;
+  .container {
+    display: block;
+    width: max-content;             /* Expand to fit content */
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    white-space: nowrap;
   }
 
   .nurse-list {
+    display: inline-block;
     min-width: 150px;
-    display: inline-block;  /* Side-by-side scroll */
     vertical-align: top;
+    white-space: normal;
+  }
+
+  .calendar {
+    display: inline-block;
+    min-width: 720px;               /* Force full calendar width */
+    vertical-align: top;
+    white-space: normal;
   }
 
   .weekdays,
   .calendar-grid {
-    min-width: 720px;       /* Same as desktop calendar */
+    grid-template-columns: repeat(7, 1fr);
+    min-width: 720px;
+  }
+
+  .day {
+    min-height: 100px;
   }
 }
+
 
 
 </style>
