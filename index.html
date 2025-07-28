@@ -409,39 +409,6 @@ body.view-mode {
   overflow-y: auto;  /* Allow vertical scrolling */
   overflow-x: hidden; /* Still no horizontal scroll */
 }
-
-
-/* Mobile adjustments */
-@media (max-width: 480px) {
-  .container {
-    grid-template-columns: 1fr; /* Stack nurse list above calendar */
-    gap: 8px;
-  }
-
-  .nurse-list {
-    max-width: 100%;
-    order: 1; /* Ensure nurse list comes first */
-  }
-
-  .calendar {
-    min-width: 100%; /* Use full screen width */
-    order: 2;
-  }
-
-  .weekdays,
-  .calendar-grid {
-    grid-template-columns: repeat(7, 1fr); /* Each column auto-scales */
-    min-width: 100%;
-  }
-
-  .day {
-    min-height: 90px !important;
-    padding: 6px !important;
-  }
-
-  .day-number {
-    font-size: 1em !important;
-  }
 }
 
 </style>
