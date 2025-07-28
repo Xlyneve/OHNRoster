@@ -405,30 +405,33 @@ body.view-mode .day {
   min-height: 150px;
   font-size: 1rem;
 }
-/* Optional: make sure body does not scroll */
 body.view-mode {
-  overflow: hidden;
+  overflow-y: auto;  /* Allow vertical scrolling */
+  overflow-x: hidden; /* Still no horizontal scroll */
 }
+
 
 /* Mobile adjustments */
 @media (max-width: 480px) {
   .container {
-    grid-template-columns: 120px 1fr;
-    gap: 5px;
+    grid-template-columns: 1fr; /* Stack nurse list above calendar */
+    gap: 8px;
   }
 
   .nurse-list {
-    max-width: 120px;
+    max-width: 100%;
+    order: 1; /* Ensure nurse list comes first */
   }
 
   .calendar {
-    min-width: 720px;
+    min-width: 100%; /* Use full screen width */
+    order: 2;
   }
 
   .weekdays,
   .calendar-grid {
-    grid-template-columns: repeat(7, minmax(100px, 1fr));
-    min-width: 720px;
+    grid-template-columns: repeat(7, 1fr); /* Each column auto-scales */
+    min-width: 100%;
   }
 
   .day {
@@ -440,6 +443,7 @@ body.view-mode {
     font-size: 1em !important;
   }
 }
+
 </style>
 
 
@@ -666,75 +670,84 @@ body.view-mode {
 
   /** ---------- Nurse List ---------- **/
   function renderNurseList() {
-    nurseContainer.innerHTML = '';
-    nurses.forEach((nurse, idx) => {
-      const div = document.createElement('div');
-      div.classList.add('nurse');
-      if (selectedNurseIndex === idx) div.classList.add('selected');
+  nurseContainer.innerHTML = '';
+  nurses.forEach((nurse, idx) => {
+    const div = document.createElement('div');
+    div.classList.add('nurse');
+    if (selectedNurseIndex === idx) div.classList.add('selected');
 
-      const infoDiv = document.createElement('div');
-      infoDiv.classList.add('nurse-info');
+    const infoDiv = document.createElement('div');
+    infoDiv.classList.add('nurse-info');
 
-      const colorBox = document.createElement('div');
-      colorBox.classList.add('color-box');
-      colorBox.style.background = nurse.color;
+    const colorBox = document.createElement('div');
+    colorBox.classList.add('color-box');
+    colorBox.style.background = nurse.color;
 
-      const colorPicker = document.createElement('input');
-      colorPicker.type = 'color';
-      colorPicker.value = nurse.color;
-      colorPicker.classList.add('color-picker');
+    const colorPicker = document.createElement('input');
+    colorPicker.type = 'color';
+    colorPicker.value = nurse.color;
+    colorPicker.classList.add('color-picker');
+    colorPicker.style.display = 'none'; // hide by default
 
-      colorBox.addEventListener('click', (e) => {
-        e.stopPropagation();
-        document.querySelectorAll('.color-picker').forEach(p => {
-          if (p !== colorPicker) p.style.display = 'none';
-        });
-        if (!canEdit) return;
-        colorPicker.style.display = colorPicker.style.display === 'block' ? 'none' : 'block';
+    colorBox.addEventListener('click', (e) => {
+      e.stopPropagation();
+      document.querySelectorAll('.color-picker').forEach(p => {
+        if (p !== colorPicker) p.style.display = 'none';
       });
-
-      colorPicker.addEventListener('input', (e) => {
-        if (!canEdit) return;
-        nurse.color = e.target.value;
-        saveData();
-        renderNurseList();
-        renderCalendar();
-      });
-
-      infoDiv.appendChild(colorBox);
-      infoDiv.appendChild(document.createTextNode(nurse.name));
-
-      infoDiv.addEventListener('click', () => {
-        if (!canEdit) return;
-        selectedNurseIndex = idx;
-        renderNurseList();
-      });
-
-      div.appendChild(infoDiv);
-      div.appendChild(colorPicker);
-
-      const deleteBtn = document.createElement('span');
-      deleteBtn.textContent = '✖';
-      deleteBtn.classList.add('delete-btn');
-      deleteBtn.title = "Delete Nurse";
-      deleteBtn.style.display = canEdit ? 'inline-block' : 'none';
-      deleteBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        if (!canEdit) {
-          alert("You do not have permission to delete nurses.");
-          return;
-        }
-        nurses.splice(idx, 1);
-        if (selectedNurseIndex === idx) selectedNurseIndex = null;
-        saveData();
-        renderNurseList();
-        renderCalendar();
-      });
-
-      div.appendChild(deleteBtn);
-      nurseContainer.appendChild(div);
+      if (!canEdit) return;
+      colorPicker.style.display = (colorPicker.style.display === 'block') ? 'none' : 'block';
     });
-  }
+
+    colorPicker.addEventListener('mousedown', (e) => {
+      e.stopPropagation(); // prevent closing when interacting
+    });
+
+    colorPicker.addEventListener('click', (e) => {
+      e.stopPropagation(); // prevent closing on click inside picker
+    });
+
+    colorPicker.addEventListener('input', (e) => {
+      if (!canEdit) return;
+      nurse.color = e.target.value;
+      saveData();
+      renderNurseList();
+      renderCalendar();
+    });
+
+    infoDiv.appendChild(colorBox);
+    infoDiv.appendChild(document.createTextNode(nurse.name));
+
+    infoDiv.addEventListener('click', () => {
+      if (!canEdit) return;
+      selectedNurseIndex = idx;
+      renderNurseList();
+    });
+
+    div.appendChild(infoDiv);
+    div.appendChild(colorPicker);
+
+    const deleteBtn = document.createElement('span');
+    deleteBtn.textContent = '✖';
+    deleteBtn.classList.add('delete-btn');
+    deleteBtn.title = "Delete Nurse";
+    deleteBtn.style.display = canEdit ? 'inline-block' : 'none';
+    deleteBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (!canEdit) {
+        alert("You do not have permission to delete nurses.");
+        return;
+      }
+      nurses.splice(idx, 1);
+      if (selectedNurseIndex === idx) selectedNurseIndex = null;
+      saveData();
+      renderNurseList();
+      renderCalendar();
+    });
+
+    div.appendChild(deleteBtn);
+    nurseContainer.appendChild(div);
+  });
+}
 
   function getRandomColor() {
     const colors = ['#ff9800', '#e65100', '#f57c00', '#ffb74d', '#ef6c00'];
