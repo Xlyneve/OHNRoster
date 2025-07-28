@@ -411,41 +411,32 @@ body.view-mode {
 }
 
 
-/* Mobile adjustments */
 @media (max-width: 480px) {
   .container {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-  }
-
-  .nurse-list {
-    max-width: 100%;
-    order: 2;
+    display: block;
+    overflow-x: auto;       /* Allow horizontal scroll */
+    -webkit-overflow-scrolling: touch;
+    white-space: nowrap;    /* Keep layout in one row */
   }
 
   .calendar {
-    min-width: auto;
-    width: 100%;
-    order: 1;
+    min-width: 720px;       /* Keep full desktop width */
+    display: inline-block;  /* Allow horizontal scroll */
+    vertical-align: top;
+  }
+
+  .nurse-list {
+    min-width: 150px;
+    display: inline-block;  /* Side-by-side scroll */
+    vertical-align: top;
   }
 
   .weekdays,
   .calendar-grid {
-    grid-template-columns: repeat(7, 1fr); /* 7 equal columns */
-    min-width: 100%;
-  }
-
-  .day {
-    min-height: 80px;
-    padding: 6px;
-    font-size: 0.9rem;
-  }
-
-  .day-number {
-    font-size: 0.9rem;
+    min-width: 720px;       /* Same as desktop calendar */
   }
 }
+
 
 </style>
 
