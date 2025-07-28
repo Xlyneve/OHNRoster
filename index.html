@@ -2,7 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+
 <title>Nurses Roster</title>
 <style>
 body {
@@ -417,23 +418,26 @@ body.view-mode {
   }
 
   .container {
-    display: inline-block;
-    width: max-content;             /* Expand to fit content */
-    overflow-x: auto;
+    display: block;                 /* Stack contents vertically */
+    width: max-content;             /* Expand container width to fit contents */
+    overflow-x: auto;              /* Allow horizontal scrolling */
     -webkit-overflow-scrolling: touch;
-    white-space: normal;
+    white-space: nowrap;           /* Prevent line breaks inside container */
+    padding: 10px 0;               /* Optional: some vertical padding */
+    margin: 0 auto;                /* Center container horizontally */
   }
 
   .nurse-list {
-    display: inline-block;
+    display: inline-block;         /* Place nurse list inline */
     min-width: 150px;
     vertical-align: top;
-    white-space: normal;
+    white-space: normal;           /* Allow text wrapping inside nurse list */
+    margin-right: 10px;            /* Spacing between nurse list and calendar */
   }
 
   .calendar {
-    display: inline-block;
-    min-width: 720px;               /* Force full calendar width */
+    display: inline-block;         /* Place calendar inline with nurse list */
+    min-width: 720px;              /* Force wide calendar width */
     vertical-align: top;
     white-space: normal;
   }
@@ -441,13 +445,14 @@ body.view-mode {
   .weekdays,
   .calendar-grid {
     grid-template-columns: repeat(7, 1fr);
-    min-width: 720px;
+    min-width: 720px;              /* Keep full width for calendar grid */
   }
 
   .day {
     min-height: 100px;
   }
 }
+
 
 
 
