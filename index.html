@@ -556,6 +556,8 @@ footer {
     <div class="nurse-list">
       <h3>Nurses / HCA</h3>
       <div id="nurseContainer"></div>
+<h4>Template Day</h4>
+<div id="templateDay" class="day" style="min-height:120px;"></div>
 
       <div class="add-nurse">
         <input type="text" id="newNurseName" placeholder="Add Nurse">
@@ -571,6 +573,7 @@ footer {
         </ul>
       </div>
     </div>
+
 
     <!-- Calendar Section -->
     <div class="calendar">
@@ -763,17 +766,18 @@ footer {
   }
 
   async function saveData() {
-    if (!canEdit) {
-      alert("You do not have permission to edit.");
-      return;
-    }
-    try {
-      await setDoc(doc(db, "nursesRoster", "main"), { roster, nurses });
-    } catch (error) {
-      console.error("Error saving data:", error);
-      alert("Failed to save data. Check console.");
-    }
+  if (!canEdit) {
+    alert("You do not have permission to edit.");
+    return;
   }
+  try {
+    await setDoc(doc(db, "nursesRoster", "main"), { roster, nurses }, { merge: true });
+  } catch (error) {
+    console.error("Error saving data:", error);
+    alert("Failed to save data. Check console.");
+  }
+}
+
 
   /** ---------- Nurse List ---------- **/
   function renderNurseList() {
@@ -946,112 +950,140 @@ footer {
 
     return shiftDiv;
   }
+function renderDayCell(year, month, day) {
+  const key = `${year}-${month}-${day}`;
+  if (!roster[key]) roster[key] = { shifts: [], notes: '' };
 
-  function renderDayCell(year, month, day) {
-    const key = `${year}-${month}-${day}`;
-    if (!roster[key]) roster[key] = { shifts: [], notes: '' };
+  const dayCell = document.createElement('div');
+  dayCell.classList.add('day');
+  dayCell.dataset.dayKey = key;
 
-    const dayCell = document.createElement('div');
-    dayCell.classList.add('day');
-    dayCell.dataset.dayKey = key; // ✅ needed for shift editing
+  const date = new Date(year, month, day);
+  dayCell.dataset.date = date.toDateString();
 
-    const date = new Date(year, month, day);
-    dayCell.dataset.date = date.toDateString(); // ✅ add date attribute for Today scroll
+  if (date.getDay() === 0 || date.getDay() === 6) dayCell.classList.add('weekend');
 
-    if (date.getDay() === 0 || date.getDay() === 6) dayCell.classList.add('weekend');
+  // Highlight today
+  const today = new Date();
+  if (date.toDateString() === today.toDateString()) {
+    dayCell.classList.add('today');
+  }
 
-    // Highlight today
-    const today = new Date();
-    if (date.toDateString() === today.toDateString()) {
-      dayCell.classList.add('today');
+  // Day number + note
+  const dayNumber = document.createElement('div');
+  dayNumber.classList.add('day-number');
+  dayNumber.innerHTML = day + (roster[key].notes ? `<span class="day-note">${roster[key].notes}</span>` : '');
+  dayNumber.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (!canEdit) return;
+    const note = prompt('Enter notes for this day:', roster[key].notes || '');
+    if (note !== null) {
+      roster[key].notes = note;
+      saveData();
+      renderCalendar();
     }
+  });
 
-    const dayNumber = document.createElement('div');
-    dayNumber.classList.add('day-number');
-    dayNumber.innerHTML = day + (roster[key].notes ? `<span class="day-note">${roster[key].notes}</span>` : '');
-    dayNumber.addEventListener('click', (e) => {
+  // Drag handle for shifting all shifts
+  const dragHandle = document.createElement('span');
+  dragHandle.textContent = '⇅';
+  dragHandle.style.cursor = canEdit ? 'grab' : 'default';
+  dragHandle.title = 'Drag all shifts of this day';
+  dragHandle.draggable = canEdit;
+
+  if (canEdit) {
+    dragHandle.addEventListener('dragstart', (e) => {
       e.stopPropagation();
-      if (!canEdit) return;
-      const note = prompt('Enter notes for this day:', roster[key].notes || '');
-      if (note !== null) {
-        roster[key].notes = note;
+      const allShifts = roster[key].shifts || [];
+      e.dataTransfer.setData('text/day-shifts', JSON.stringify(allShifts));
+    });
+  }
+
+  // Header container
+  const header = document.createElement('div');
+  header.style.display = 'flex';
+  header.style.justifyContent = 'space-between';
+  header.style.alignItems = 'center';
+  header.appendChild(dayNumber);
+  header.appendChild(dragHandle);
+
+  dayCell.appendChild(header);
+
+  if (canEdit) {
+    // Allow drops
+    dayCell.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      dayCell.classList.add('drag-over');
+    });
+
+    dayCell.addEventListener('dragleave', () => {
+      dayCell.classList.remove('drag-over');
+    });
+
+    dayCell.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dayCell.classList.remove('drag-over');
+
+      // 1️⃣ Nurse dropped from nurse list
+      const nurseIndex = e.dataTransfer.getData('nurseIndex');
+      if (nurseIndex !== '') {
+        const nurse = nurses[nurseIndex];
+        roster[key].shifts.push({ name: nurse.name, color: nurse.color, time: "Shift" });
+        saveData();
+        renderCalendar();
+        return;
+      }
+
+      // 2️⃣ Day-to-day drag (multiple shifts)
+      const dayShiftsData = e.dataTransfer.getData('text/day-shifts');
+      if (dayShiftsData) {
+        const shifts = JSON.parse(dayShiftsData);
+        roster[key].shifts = roster[key].shifts.concat(shifts.map(s => ({ ...s })));
+        saveData();
+        renderCalendar();
+        return;
+      }
+
+      // 3️⃣ Single template shift
+      const templateShiftData = e.dataTransfer.getData('text/template-shift');
+      if (templateShiftData) {
+        const shift = JSON.parse(templateShiftData);
+        roster[key].shifts.push(shift);
+        saveData();
+        renderCalendar();
+        return;
+      }
+
+      // 4️⃣ All-template-shifts drag
+      const allTemplateShiftsData = e.dataTransfer.getData('text/all-template-shifts');
+      if (allTemplateShiftsData) {
+        const shifts = JSON.parse(allTemplateShiftsData);
+        roster[key].shifts = roster[key].shifts.concat(shifts.map(s => ({ ...s })));
+        saveData();
+        renderCalendar();
+        return;
+      }
+
+      // 5️⃣ Fallback single shift drag
+      const shiftData = e.dataTransfer.getData('text/plain');
+      if (shiftData) {
+        const shift = JSON.parse(shiftData);
+        roster[key].shifts.push(shift);
         saveData();
         renderCalendar();
       }
     });
-
-    const dragHandle = document.createElement('span');
-    dragHandle.textContent = '⇅';
-    dragHandle.style.cursor = canEdit ? 'grab' : 'default';
-    dragHandle.title = 'Drag all shifts of this day';
-    dragHandle.draggable = canEdit;
-
-    if (canEdit) {
-      dragHandle.addEventListener('dragstart', (e) => {
-        e.stopPropagation();
-        const allShifts = roster[key].shifts || [];
-        e.dataTransfer.setData('text/day-shifts', JSON.stringify(allShifts));
-      });
-    }
-
-    const header = document.createElement('div');
-    header.style.display = 'flex';
-    header.style.justifyContent = 'space-between';
-    header.style.alignItems = 'center';
-    header.appendChild(dayNumber);
-    header.appendChild(dragHandle);
-
-    dayCell.appendChild(header);
-
-    if (canEdit) {
-      // ✅ allow nurse drop from left list
-      dayCell.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        dayCell.classList.add('drag-over');
-      });
-      dayCell.addEventListener('dragleave', () => dayCell.classList.remove('drag-over'));
-      dayCell.addEventListener('drop', (e) => {
-        e.preventDefault();
-        dayCell.classList.remove('drag-over');
-
-        const nurseIndex = e.dataTransfer.getData('nurseIndex');
-        if (nurseIndex !== '') {
-          const nurse = nurses[nurseIndex];
-          roster[key].shifts.push({
-            name: nurse.name,
-            color: nurse.color,
-            time: "Shift"
-          });
-          saveData();
-          renderCalendar();
-          return;
-        }
-
-        const dayShiftsData = e.dataTransfer.getData('text/day-shifts');
-        if (dayShiftsData) {
-          const shifts = JSON.parse(dayShiftsData);
-          roster[key].shifts = roster[key].shifts.concat(shifts);
-          saveData();
-          renderCalendar();
-          return;
-        }
-
-        const shiftData = e.dataTransfer.getData('text/plain');
-        if (shiftData) {
-          const shift = JSON.parse(shiftData);
-          roster[key].shifts.push(shift);
-          saveData();
-          renderCalendar();
-        }
-      });
-    }
-
-    roster[key].shifts.forEach((shift, i) => {
-      dayCell.appendChild(createShiftElement(shift, key, i));
-    });
-
-    return dayCell;
   }
+
+  // Render all shifts for this day
+  roster[key].shifts.forEach((shift, i) => {
+    dayCell.appendChild(createShiftElement(shift, key, i));
+  });
+
+  return dayCell;
+}
+
+ 
 function renderCalendar() {
   calendarGrid.innerHTML = '';
 
@@ -1154,6 +1186,197 @@ onAuthStateChanged(auth, () => {
   loadData();
 });
 
+// ------------------- TEMPLATE HANDLING -------------------
+
+// ---------------- Template Drag/Drop ----------------
+const templateDay = document.getElementById('templateDay');
+let templateShifts = [];
+
+// ---------------- Firestore Template ----------------
+async function loadTemplate() {
+  try {
+    const docRef = doc(db, "nursesRoster", "main");
+    const docSnap = await getDoc(docRef);
+    if (docSnap.exists()) {
+      templateShifts = docSnap.data().templateShifts || [];
+    } else {
+      templateShifts = [];
+    }
+    renderTemplateDay();
+  } catch (err) {
+    console.error("Failed to load template:", err);
+  }
+}
+
+async function saveTemplate() {
+  try {
+    await setDoc(doc(db, "nursesRoster", "main"), {
+      templateShifts: templateShifts.map(s => ({ ...s }))
+    }, { merge: true });
+  } catch (err) {
+    console.error("Failed to save template:", err);
+  }
+}
+
+// ---------------- Render Template ----------------
+function renderTemplateDay() {
+  templateDay.innerHTML = '';
+
+  // Drag all handle
+  const dragHandle = document.createElement('span');
+  dragHandle.textContent = '⇅';
+  dragHandle.title = 'Drag all template shifts';
+  dragHandle.style.cursor = canEdit ? 'grab' : 'default';
+  dragHandle.draggable = canEdit;
+  if (canEdit) {
+    dragHandle.addEventListener('dragstart', e => {
+      e.dataTransfer.setData('text/all-template-shifts', JSON.stringify(templateShifts.map(s => ({ ...s }))));
+    });
+  }
+  templateDay.appendChild(dragHandle);
+
+  // Individual shifts
+  templateShifts.forEach((shift, idx) => {
+    const shiftDiv = document.createElement('div');
+    shiftDiv.className = 'shift';
+    shiftDiv.style.backgroundColor = shift.color;
+    shiftDiv.textContent = `${shift.name}: ${shift.time || 'Shift'}`;
+    shiftDiv.draggable = canEdit;
+
+    // Drag single shift
+    shiftDiv.addEventListener('dragstart', e => {
+      e.dataTransfer.setData('text/template-shift', JSON.stringify({ ...shift }));
+    });
+
+    // Right-click edit
+    shiftDiv.addEventListener('contextmenu', e => {
+      e.preventDefault();
+      if (!canEdit) return;
+      const newTime = prompt(`Edit shift for ${shift.name}:`, shift.time || '');
+      if (newTime !== null) {
+        shift.time = newTime.trim();
+        renderTemplateDay();
+        saveTemplate();
+      }
+    });
+
+    // Long press delete
+    let pressTimer;
+    shiftDiv.addEventListener('mousedown', () => {
+      if (!canEdit) return;
+      pressTimer = setTimeout(() => {
+        if (confirm(`Delete shift for ${shift.name} from template?`)) {
+          templateShifts.splice(idx, 1);
+          renderTemplateDay();
+          saveTemplate();
+        }
+      }, 800);
+    });
+    shiftDiv.addEventListener('mouseup', () => clearTimeout(pressTimer));
+    shiftDiv.addEventListener('mouseleave', () => clearTimeout(pressTimer));
+
+    templateDay.appendChild(shiftDiv);
+  });
+}
+
+// ---------------- Template Drag/Drop ----------------
+function setupTemplateDragDrop() {
+  templateDay.addEventListener('dragover', e => {
+    e.preventDefault();
+    templateDay.classList.add('drag-over');
+  });
+
+  templateDay.addEventListener('dragleave', () => templateDay.classList.remove('drag-over'));
+
+  templateDay.addEventListener('drop', e => {
+    e.preventDefault();
+    templateDay.classList.remove('drag-over');
+    if (!canEdit) return;
+
+    // Nurse dragged from left list
+    const nurseIndex = e.dataTransfer.getData('nurseIndex');
+    if (nurseIndex !== '') {
+      const nurse = nurses[nurseIndex];
+      if (!templateShifts.some(s => s.name === nurse.name)) {
+        templateShifts.push({ name: nurse.name, color: nurse.color, time: "Shift" });
+        renderTemplateDay();
+        saveTemplate();
+      }
+      return;
+    }
+
+    // Single shift dragged
+    const templateShiftData = e.dataTransfer.getData('text/template-shift');
+    if (templateShiftData) {
+      const shift = JSON.parse(templateShiftData);
+      if (!templateShifts.some(s => s.name === shift.name && s.time === shift.time)) {
+        templateShifts.push({ ...shift });
+        renderTemplateDay();
+        saveTemplate();
+      }
+      return;
+    }
+
+    // All template shifts dragged
+    const allTemplateShiftsData = e.dataTransfer.getData('text/all-template-shifts');
+    if (allTemplateShiftsData) {
+      const shifts = JSON.parse(allTemplateShiftsData);
+      shifts.forEach(s => {
+        if (!templateShifts.some(t => t.name === s.name && t.time === s.time)) templateShifts.push({ ...s });
+      });
+      renderTemplateDay();
+      saveTemplate();
+    }
+  });
+}
+
+setupTemplateDragDrop();
+loadTemplate();
+
+// ---------------- Day Cell Drop ----------------
+function handleDayDrop(dayCell) {
+  dayCell.addEventListener('dragover', e => { e.preventDefault(); dayCell.classList.add('drag-over'); });
+  dayCell.addEventListener('dragleave', () => dayCell.classList.remove('drag-over'));
+  dayCell.addEventListener('drop', e => {
+    e.preventDefault();
+    dayCell.classList.remove('drag-over');
+    if (!canEdit) return;
+
+    const key = dayCell.dataset.dayKey;
+    if (!roster[key]) roster[key] = { shifts: [], notes: '' };
+
+    // Nurse dragged
+    const nurseIndex = e.dataTransfer.getData('nurseIndex');
+    if (nurseIndex !== '') {
+      const nurse = nurses[nurseIndex];
+      roster[key].shifts.push({ name: nurse.name, color: nurse.color, time: 'Shift' });
+      saveData();
+      renderCalendar();
+      return;
+    }
+
+    // Template shift dragged
+    const templateShiftData = e.dataTransfer.getData('text/template-shift');
+    if (templateShiftData) {
+      const shift = JSON.parse(templateShiftData);
+      roster[key].shifts.push({ ...shift });
+      saveData();
+      renderCalendar();
+      return;
+    }
+
+    // All template shifts
+    const allTemplateShiftsData = e.dataTransfer.getData('text/all-template-shifts');
+    if (allTemplateShiftsData) {
+      const shifts = JSON.parse(allTemplateShiftsData);
+      shifts.forEach(s => roster[key].shifts.push({ ...s }));
+      saveData();
+      renderCalendar();
+    }
+  });
+}
+
+document.querySelectorAll('.day').forEach(cell => handleDayDrop(cell));
 </script>
 
 </body>
