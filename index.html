@@ -1222,20 +1222,39 @@ async function saveTemplate() {
 function renderTemplateDay() {
   templateDay.innerHTML = '';
 
-  // Drag all handle
+  // Make template day draggable like a real day
+  templateDay.draggable = canEdit;
+
+  // ---------- Header ----------
+  const header = document.createElement('div');
+  header.style.display = 'flex';
+  header.style.justifyContent = 'space-between';
+  header.style.alignItems = 'center';
+
+  const label = document.createElement('div');
+  label.className = 'day-number';
+  label.textContent = 'Template';
+
   const dragHandle = document.createElement('span');
   dragHandle.textContent = '⇅';
-  dragHandle.title = 'Drag all template shifts';
   dragHandle.style.cursor = canEdit ? 'grab' : 'default';
   dragHandle.draggable = canEdit;
+
   if (canEdit) {
-    dragHandle.addEventListener('dragstart', e => {
-      e.dataTransfer.setData('text/all-template-shifts', JSON.stringify(templateShifts.map(s => ({ ...s }))));
+    dragHandle.addEventListener('dragstart', (e) => {
+      e.stopPropagation();
+      e.dataTransfer.setData(
+        'text/day-shifts',
+        JSON.stringify(templateShifts.map(s => ({ ...s })))
+      );
     });
   }
-  templateDay.appendChild(dragHandle);
 
-  // Individual shifts
+  header.appendChild(label);
+  header.appendChild(dragHandle);
+  templateDay.appendChild(header);
+
+  // ---------- Shifts ----------
   templateShifts.forEach((shift, idx) => {
     const shiftDiv = document.createElement('div');
     shiftDiv.className = 'shift';
@@ -1243,24 +1262,27 @@ function renderTemplateDay() {
     shiftDiv.textContent = `${shift.name}: ${shift.time || 'Shift'}`;
     shiftDiv.draggable = canEdit;
 
-    // Drag single shift
-    shiftDiv.addEventListener('dragstart', e => {
-      e.dataTransfer.setData('text/template-shift', JSON.stringify({ ...shift }));
-    });
-
-    // Right-click edit
-    shiftDiv.addEventListener('contextmenu', e => {
+    // ---- RIGHT CLICK = EDIT (same as day cell) ----
+    shiftDiv.addEventListener('contextmenu', (e) => {
       e.preventDefault();
       if (!canEdit) return;
-      const newTime = prompt(`Edit shift for ${shift.name}:`, shift.time || '');
+
+      const newTime = prompt(
+        `Edit shift for ${shift.name}:`,
+        shift.time || ''
+      );
+
       if (newTime !== null) {
-        shift.time = newTime.trim();
-        renderTemplateDay();
-        saveTemplate();
+        const trimmed = newTime.trim();
+        if (trimmed !== '') {
+          templateShifts[idx].time = trimmed;
+          renderTemplateDay();
+          saveTemplate();
+        }
       }
     });
 
-    // Long press delete
+    // ---- LONG PRESS = DELETE (same as day cell) ----
     let pressTimer;
     shiftDiv.addEventListener('mousedown', () => {
       if (!canEdit) return;
@@ -1272,12 +1294,14 @@ function renderTemplateDay() {
         }
       }, 800);
     });
+
     shiftDiv.addEventListener('mouseup', () => clearTimeout(pressTimer));
     shiftDiv.addEventListener('mouseleave', () => clearTimeout(pressTimer));
 
     templateDay.appendChild(shiftDiv);
   });
 }
+
 
 // ---------------- Template Drag/Drop ----------------
 function setupTemplateDragDrop() {
