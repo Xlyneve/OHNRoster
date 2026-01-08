@@ -1225,6 +1225,17 @@ function renderTemplateDay() {
   // Make template day draggable like a real day
   templateDay.draggable = canEdit;
 
+  // ✅ NEW: allow dragging the ENTIRE template day (not just ⇅)
+  if (canEdit) {
+    templateDay.addEventListener('dragstart', (e) => {
+      e.stopPropagation();
+      e.dataTransfer.setData(
+        'text/day-shifts',
+        JSON.stringify(templateShifts.map(s => ({ ...s })))
+      );
+    });
+  }
+
   // ---------- Header ----------
   const header = document.createElement('div');
   header.style.display = 'flex';
@@ -1262,7 +1273,7 @@ function renderTemplateDay() {
     shiftDiv.textContent = `${shift.name}: ${shift.time || 'Shift'}`;
     shiftDiv.draggable = canEdit;
 
-    // ---- RIGHT CLICK = EDIT (same as day cell) ----
+    // ---- RIGHT CLICK = EDIT ----
     shiftDiv.addEventListener('contextmenu', (e) => {
       e.preventDefault();
       if (!canEdit) return;
@@ -1282,7 +1293,7 @@ function renderTemplateDay() {
       }
     });
 
-    // ---- LONG PRESS = DELETE (same as day cell) ----
+    // ---- LONG PRESS = DELETE ----
     let pressTimer;
     shiftDiv.addEventListener('mousedown', () => {
       if (!canEdit) return;
