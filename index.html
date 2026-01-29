@@ -1147,16 +1147,19 @@ function getWeekEnd(monday) {
   }
 }
 
-// Month navigation
+// Month navigation (FIXED: prevents month skipping)
 prevMonthBtn.addEventListener("click", () => {
+  currentDate.setDate(1);                 // ← ADD THIS
   currentDate.setMonth(currentDate.getMonth() - 1);
   renderCalendar();
 });
 
 nextMonthBtn.addEventListener("click", () => {
+  currentDate.setDate(1);                 // ← ADD THIS
   currentDate.setMonth(currentDate.getMonth() + 1);
   renderCalendar();
 });
+
 
 // Today button
 todayBtn.addEventListener("click", () => {
