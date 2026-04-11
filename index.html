@@ -67,6 +67,13 @@ body::after {
 .calendar-inner {
   width: 100%;
 }
+.jump-date-picker {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+  width: 1px;
+  height: 1px;
+}
 
 /* Header with logo */
 .main-header {
@@ -426,6 +433,11 @@ body.logged-in .nurse-list {
   flex-grow: 2;
   font-weight: bold;
   font-size: 1.2em;
+  cursor: pointer;
+}
+.month-label::after {
+  content: " ▾";
+  font-size: 0.8em;
 }
 
 .btn {
@@ -848,7 +860,8 @@ footer {
       <button class="btn" id="prevMonth">◀</button>
       <button class="btn" id="todayBtn">Today</button>
       <button class="btn" id="nextMonth">▶</button>
-      <h2 id="monthYear" class="month-label"></h2>
+      <h2 id="monthYear" class="month-label" title="Choose date"></h2>
+<input type="date" id="jumpDatePicker" class="jump-date-picker" />
     </div>
 
     <div class="calendar-scroll-wrapper" id="weekdaysScroll">
@@ -911,6 +924,7 @@ const closeAuthModalBtn = document.getElementById('closeAuthModalBtn');
 
   const calendarGrid = document.getElementById('calendarGrid');
   const monthYear = document.getElementById('monthYear');
+  const jumpDatePicker = document.getElementById('jumpDatePicker');
   const prevMonthBtn = document.getElementById('prevMonth');
   const nextMonthBtn = document.getElementById('nextMonth');
   const todayBtn = document.getElementById('todayBtn');
@@ -939,6 +953,31 @@ const gridScroll = document.getElementById('gridScroll');
   let currentDate = new Date();
 
 let syncingScroll = false;
+
+monthYear.addEventListener('click', () => {
+  const year = currentDate.getFullYear();
+  const month = String(currentDate.getMonth() + 1).padStart(2, '0');
+  const day = String(currentDate.getDate()).padStart(2, '0');
+
+  jumpDatePicker.value = `${year}-${month}-${day}`;
+
+  if (typeof jumpDatePicker.showPicker === 'function') {
+    jumpDatePicker.showPicker();
+  } else {
+    jumpDatePicker.focus();
+    jumpDatePicker.click();
+  }
+});
+
+jumpDatePicker.addEventListener('change', (e) => {
+  if (!e.target.value) return;
+
+  const pickedDate = new Date(e.target.value);
+  if (isNaN(pickedDate.getTime())) return;
+
+  currentDate = pickedDate;
+  renderCalendar();
+});
 
 function syncCalendarScroll() {
   if (!weekdaysScroll || !gridScroll) return;
