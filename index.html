@@ -390,7 +390,22 @@ body.logged-in .nurse-list {
   transition: background-color 0.3s ease;
 }
 .add-nurse button:hover { background: #e68900; }
+.roster-status {
+  width: 100%;
+  box-sizing: border-box;
+  margin: 0 0 8px 0;
+  padding: 8px 10px;
+  border-radius: 10px;
+  font-size: 0.88rem;
+  color: #444;
+  background: rgba(255,255,255,0.7);
+  border: 1px solid rgba(0,0,0,0.08);
+  display: none;
+}
 
+.roster-status.show {
+  display: block;
+}
 .calendar {
   flex: 0 0 var(--cal-w);
   max-width: var(--cal-w);
@@ -855,6 +870,7 @@ footer {
 
     <!-- Calendar Section -->
    <div class="calendar">
+  <div id="rosterStatus" class="roster-status" aria-live="polite"></div>
   <div class="calendar-top-sticky">
     <div class="calendar-header">
       <button class="btn" id="prevMonth">◀</button>
@@ -933,6 +949,8 @@ const closeAuthModalBtn = document.getElementById('closeAuthModalBtn');
   const addNurseBtn = document.getElementById('addNurseBtn');
   const weekdaysScroll = document.getElementById('weekdaysScroll');
 const gridScroll = document.getElementById('gridScroll');
+
+const rosterStatus = document.getElementById('rosterStatus');
 
   let currentUser = null;
   let canEdit = false;  // controls if editing is allowed
@@ -1044,6 +1062,7 @@ closeAuthModal();
 	 authToggleBtn.textContent = currentUser ? '✅' : '👤';
 authToggleBtn.setAttribute('aria-label', currentUser ? 'Open account menu' : 'Open sign in');
 
+
     checkEditPermission();
     loadData();
   }
@@ -1074,25 +1093,46 @@ function closeAuthModal() {
     renderNurseList();
     renderCalendar();
   }
+function showRosterStatus(message) {
+  if (!rosterStatus) return;
+  rosterStatus.textContent = message;
+  rosterStatus.classList.add('show');
+}
 
+function hideRosterStatus() {
+  if (!rosterStatus) return;
+  rosterStatus.textContent = '';
+  rosterStatus.classList.remove('show');
+}
   /** ---------- Firebase Data ---------- **/
   async function loadData() {
-    try {
-      const docRef = doc(db, "nursesRoster", "main");
-      const docSnap = await getDoc(docRef);
-      if (docSnap.exists()) {
-        const data = docSnap.data();
-        roster = data.roster || {};
-        nurses = data.nurses || nurses;
-      }
-      syncShiftColorsWithNurses();  
-      renderNurseList();
-      renderCalendar();
-    } catch (error) {
-      console.error("Failed to load data from Firestore:", error);
-      alert("Failed to load data from Firestore. Check console.");
+  try {
+    hideRosterStatus();
+
+    const docRef = doc(db, "nursesRoster", "main");
+    const docSnap = await getDoc(docRef);
+
+    if (docSnap.exists()) {
+      const data = docSnap.data();
+      roster = data.roster || {};
+      nurses = data.nurses || nurses;
+    } else {
+      roster = {};
     }
+
+    syncShiftColorsWithNurses();
+    renderNurseList();
+    renderCalendar();
+  } catch (error) {
+    console.error("Failed to load data from Firestore:", error);
+
+    roster = roster || {};
+    renderNurseList();
+    renderCalendar();
+
+    showRosterStatus("Roster could not be loaded right now.");
   }
+}
 
   async function saveData() {
   if (!canEdit) {
@@ -1514,9 +1554,6 @@ function syncShiftColorsWithNurses() {
   }
 }
 
-onAuthStateChanged(auth, () => {
-  loadData();
-});
 
 // ------------------- TEMPLATE HANDLING -------------------
 
@@ -1762,7 +1799,7 @@ document.addEventListener('keydown', (e) => {
   }
 });
 
-document.querySelectorAll('.day').forEach(cell => handleDayDrop(cell));
+
 </script>
 
 </body>
