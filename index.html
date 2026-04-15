@@ -347,16 +347,33 @@ body.logged-in .nurse-list {
   display: none;
 }
 
-.delete-btn {
-  color: red;
-  font-weight: normal;
-  font-size: 1em;
-  cursor: pointer;
-  opacity: 0;
-  transition: opacity 0.2s ease;
-  user-select: none;
+.shift.leave {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
 }
-.nurse:hover .delete-btn { opacity: 1; }
+
+.shift.leave::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 6px;
+  pointer-events: none;
+  background:
+    linear-gradient(
+      135deg,
+      rgba(255,255,255,0.30),
+      rgba(255,255,255,0.10)
+    ),
+    repeating-linear-gradient(
+      -45deg,
+      rgba(255,255,255,0.16) 0px,
+      rgba(255,255,255,0.16) 6px,
+      rgba(255,255,255,0.04) 6px,
+      rgba(255,255,255,0.04) 12px
+    );
+}
+
 
 .add-nurse {
   margin-top: 10px;
@@ -487,17 +504,19 @@ body.logged-in .nurse-list {
 
 .calendar-grid {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
+  grid-template-columns: repeat(7, minmax(0, 1fr));
   gap: 5px;
   width: 100%;
 }
 
-/* Day cells */
 .day {
   padding: 10px;
   border: 1px solid rgba(180, 180, 180, 0.6);
   border-radius: 12px;
   min-height: 140px;
+  min-width: 0;
+  overflow: hidden;
+  box-sizing: border-box;
   background: rgba(255, 255, 255, 0.55);
   backdrop-filter: blur(10px) saturate(160%);
   -webkit-backdrop-filter: blur(10px) saturate(160%);
@@ -508,14 +527,24 @@ body.logged-in .nurse-list {
   color: #333;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
+.day-number,
+.day-note,
+.holiday-badge {
+  max-width: 100%;
+  box-sizing: border-box;
+}
 .day.weekend { background: rgba(245, 245, 245, 0.4); }
 
 .day.today {
   position: relative;
   z-index: 2;
-  border: 3px solid #faedcd;
-  border-radius: 12px;
-  background: #faedcd;
+  border: 3px solid #000;
+  border-radius: 15px;
+  background: linear-gradient(
+    135deg,
+    rgba(254, 241, 200, 4),
+    rgba(254, 242, 219, 4)
+  );
   box-shadow: none;
 }
 
@@ -523,7 +552,34 @@ body.logged-in .nurse-list {
   content: none;
 }
 
+.day.holiday {
+  background: linear-gradient(
+    135deg,
+    rgba(242, 235, 204, 2),
+    rgba(242, 241, 237, 5)
+  );
+  border: 1px solid rgba(180, 180, 180, 0.6);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
 
+.day.holiday::after {
+  content: none;
+}
+
+.holiday-badge {
+  display: inline-block;
+  margin-left: 4px;
+  max-width: 100%;
+  padding: 1px 6px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  border-radius: 999px;
+  background: rgba(255, 0, 0);
+  color: #ffffff;
+  border: 1px solid rgba(255, 0, 0, 0.9);
+  vertical-align: middle;
+  white-space: nowrap;
+}
 
 
 .day-number {
@@ -536,7 +592,7 @@ body.logged-in .nurse-list {
 .day-note {
   font-size: 0.8em;
   color: black;
-  background-color: #f5f2c1cc;
+  background-color: #feffa3;
   margin-left: 5px;
   padding: 2px 5px;
   border-radius: 5px;
@@ -546,28 +602,61 @@ body.logged-in .nurse-list {
 .shift {
   display: block;
   margin: 2px 0;
-  padding: 3px 6px;
+  padding: 5px 22px 5px 8px;
   border-radius: 6px;
   font-size: 0.85em;
   font-weight: 500;
   text-align: center;
   color: #fff;
   background-clip: padding-box;
+  position: relative;
+  box-sizing: border-box;
+  width: 100%;
+  line-height: 1.15;
 }
-.shift .delete-btn {
-  font-size: 1.2em !important;
-  margin-left: 5px;
-  color: #fff;
-  background: rgba(0, 0, 0, 0.3);
-  border-radius: 50%;
-  padding: 0 8px !important;
-  opacity: 1;
-  transition: opacity 0.2s ease;
+.delete-btn {
   user-select: none;
 }
-.shift:hover .delete-btn { opacity: 1; }
 
-.day.current-week:not(.today) {
+.shift.leave .shift-emoji,
+.shift.leave .shift-name,
+.shift.leave .leave-badge {
+  line-height: 1;
+}
+
+.shift.leave .shift-inline {
+  white-space: nowrap;
+  max-width: 100%;
+}
+.shift .delete-btn {
+  position: absolute;
+  top: 4px;
+  right: 5px;
+  width: 16px;
+  height: 16px;
+  line-height: 14px;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 700;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.24);
+  border-radius: 999px;
+  cursor: pointer;
+  opacity: 0.9;
+  transition: background 0.2s ease, transform 0.2s ease;
+  z-index: 2;
+}
+
+.shift .delete-btn:hover {
+  background: rgba(0, 0, 0, 0.42);
+  transform: scale(1.05);
+}
+
+.shift.leave {
+  white-space: nowrap;
+}
+
+.day.current-week:not(.today):not(.holiday) {
   border: 3px solid rgba(200, 200, 200, 0.85);
   background: transparent;
   box-shadow: none;
@@ -748,10 +837,10 @@ footer {
   }
 
   .shift {
-    font-size: 0.72rem;
-    padding: 4px 5px;
-    line-height: 1.2;
-  }
+  font-size: 0.72rem;
+  padding: 4px 18px 4px 6px;
+  line-height: 1.2;
+}
 
   .add-nurse {
     flex-wrap: wrap;
@@ -849,8 +938,11 @@ footer {
     <div class="nurse-list">
       <h3>Nurses / HCA</h3>
       <div id="nurseContainer"></div>
-<h4>Template Day</h4>
-<div id="templateDay" class="day" style="min-height:120px;"></div>
+<h4>Template Day 1</h4>
+<div id="templateDay1" class="day" style="min-height:120px;"></div>
+
+<h4 style="margin-top:12px;">Template Day 2</h4>
+<div id="templateDay2" class="day" style="min-height:120px;"></div>
 
       <div class="add-nurse">
         <input type="text" id="newNurseName" placeholder="Add Nurse">
@@ -860,9 +952,11 @@ footer {
       <div class="nurse-note">
         <p>💡 <b>Tips:</b></p>
         <ul>
-          <li><b>Shift+Click</b> to delete staff</li>
-          <li><b>Long Press</b> to delete shift</li>
-          <li><b>Right Click</b> to edit shift</li>
+          <li><b>Shift+Click nurse</b> to delete staff</li>
+<li><b>Shift+Click date</b> to toggle holiday</li>
+<li><b>Click shift</b> to choose AL / SL / Study</li>
+<li><b>Right Click shift</b> to edit time</li>
+<li><b>Click ×</b> to delete shift</li>
         </ul>
       </div>
     </div>
@@ -963,10 +1057,10 @@ const rosterStatus = document.getElementById('rosterStatus');
 
   let roster = {};
   let nurses = [
-    { name: "Alice", color: "#ff9800" },
-    { name: "Bob", color: "#e65100" },
-    { name: "Carol", color: "#f57c00" }
-  ];
+  { name: "Alice", color: "#ff9800", rank: 1 },
+  { name: "Bob", color: "#e65100", rank: 2 },
+  { name: "Carol", color: "#f57c00", rank: 3 }
+];
   let selectedNurseIndex = null;
   let currentDate = new Date();
 
@@ -1120,18 +1214,37 @@ function hideRosterStatus() {
       roster = {};
     }
 
+    normalizeNurseRanks();
     syncShiftColorsWithNurses();
     renderNurseList();
     renderCalendar();
+    renderTemplateDay(templateDay1, templateShifts1, 'Template 1');
+    renderTemplateDay(templateDay2, templateShifts2, 'Template 2');
+
   } catch (error) {
     console.error("Failed to load data from Firestore:", error);
 
     roster = roster || {};
     renderNurseList();
     renderCalendar();
+    renderTemplateDay(templateDay1, templateShifts1, 'Template 1');
+    renderTemplateDay(templateDay2, templateShifts2, 'Template 2');
 
     showRosterStatus("Roster could not be loaded right now.");
   }
+}
+
+function normalizeNurseRanks() {
+  nurses.forEach((nurse, index) => {
+    if (typeof nurse.rank !== 'number' || isNaN(nurse.rank)) {
+      nurse.rank = index + 1;
+    }
+  });
+}
+
+function getNurseHierarchyIndex(nurseName) {
+  const index = nurses.findIndex(n => n.name === nurseName);
+  return index === -1 ? 999 : index;
 }
 
   async function saveData() {
@@ -1147,6 +1260,26 @@ function hideRosterStatus() {
   }
 }
 
+function getLeaveDisplay(shift) {
+  const leaveType = shift.leaveType || '';
+
+  if (leaveType === 'AL') {
+    return { text: '🌴 AL', isLeave: true };
+  }
+
+  if (leaveType === 'SL') {
+    return { text: '🤒 SL', isLeave: true };
+  }
+
+  if (leaveType === 'Study') {
+    return { text: '📘 Study', isLeave: true };
+  }
+
+  return {
+    text: shift.time || 'Shift',
+    isLeave: false
+  };
+}
 
   /** ---------- Nurse List ---------- **/
   function renderNurseList() {
@@ -1188,14 +1321,16 @@ function hideRosterStatus() {
       colorPicker.addEventListener('input', (e) => {
         if (!canEdit) return;
         nurse.color = e.target.value;
-        syncShiftColorsWithNurses();
-        saveData();
-        renderNurseList();
-        renderCalendar();
+syncShiftColorsWithNurses();
+saveData();
+renderNurseList();
+renderCalendar();
+renderTemplateDay(templateDay1, templateShifts1, 'Template 1');
+renderTemplateDay(templateDay2, templateShifts2, 'Template 2');
       });
 
       infoDiv.appendChild(colorBox);
-      infoDiv.appendChild(document.createTextNode(nurse.name));
+      infoDiv.appendChild(document.createTextNode(`${nurse.rank}. ${nurse.name}`));
 
       // ✅ Updated click handler for selection and shift+click deletion
       infoDiv.addEventListener('click', (e) => {
@@ -1204,12 +1339,20 @@ function hideRosterStatus() {
         if (e.shiftKey) {
           // Shift+click → delete nurse
           if (confirm(`Delete nurse ${nurse.name}?`)) {
-            nurses.splice(idx, 1);
-            if (selectedNurseIndex === idx) selectedNurseIndex = null;
-            saveData();
-            renderNurseList();
-            renderCalendar();
-          }
+  nurses.splice(idx, 1);
+
+  nurses.forEach((n, i) => {
+    n.rank = i + 1;
+  });
+
+  if (selectedNurseIndex === idx) selectedNurseIndex = null;
+
+  saveData();
+  renderNurseList();
+  renderCalendar();
+  renderTemplateDay(templateDay1, templateShifts1, 'Template 1');
+  renderTemplateDay(templateDay2, templateShifts2, 'Template 2');
+}
         } else {
           // Normal click → select nurse
           selectedNurseIndex = idx;
@@ -1219,7 +1362,58 @@ function hideRosterStatus() {
 
       div.appendChild(infoDiv);
       div.appendChild(colorPicker);
+	  
+	 if (canEdit) {
+  const rankInput = document.createElement('input');
+  rankInput.type = 'number';
+  rankInput.min = '1';
+  rankInput.step = '1';
+  rankInput.value = nurse.rank || idx + 1;
+  rankInput.style.width = '52px';
+  rankInput.style.marginLeft = '6px';
+  rankInput.style.borderRadius = '6px';
+  rankInput.style.border = '1px solid #ccc';
+  rankInput.style.padding = '2px 4px';
+  rankInput.style.cursor = 'text';
 
+  ['click', 'mousedown', 'mouseup', 'pointerdown', 'pointerup', 'dblclick'].forEach(evt => {
+    rankInput.addEventListener(evt, (e) => e.stopPropagation());
+  });
+
+  function applyRankChange() {
+    let newRank = parseInt(rankInput.value, 10);
+    if (isNaN(newRank) || newRank < 1) newRank = 1;
+    if (newRank > nurses.length) newRank = nurses.length;
+
+    const oldIndex = nurses.findIndex(n => n === nurse);
+    if (oldIndex === -1) return;
+
+    const movedNurse = nurses.splice(oldIndex, 1)[0];
+    nurses.splice(newRank - 1, 0, movedNurse);
+
+    nurses.forEach((n, i) => {
+      n.rank = i + 1;
+    });
+
+    saveData();
+    renderNurseList();
+    renderCalendar();
+    renderTemplateDay(templateDay1, templateShifts1, 'Template 1');
+    renderTemplateDay(templateDay2, templateShifts2, 'Template 2');
+  }
+
+  rankInput.addEventListener('keydown', (e) => {
+    e.stopPropagation();
+    if (e.key === 'Enter') {
+      applyRankChange();
+      rankInput.blur();
+    }
+  });
+
+  rankInput.addEventListener('blur', applyRankChange);
+
+  div.appendChild(rankInput);
+}
       // ✅ Dragstart handler
       div.addEventListener('dragstart', (e) => {
         e.dataTransfer.setData('nurseIndex', idx);
@@ -1241,87 +1435,132 @@ function hideRosterStatus() {
     const colors = ['#ff9800', '#e65100', '#f57c00', '#ffb74d', '#ef6c00'];
     return colors[Math.floor(Math.random() * colors.length)];
   }
+addNurseBtn.addEventListener('click', () => {
+  if (!canEdit) {
+    alert("You do not have permission to add nurses.");
+    return;
+  }
 
-  addNurseBtn.addEventListener('click', () => {
-    if (!canEdit) {
-      alert("You do not have permission to add nurses.");
-      return;
-    }
-    const name = newNurseName.value.trim();
-    if (name) {
-      nurses.push({ name, color: getRandomColor() });
-      newNurseName.value = '';
-      saveData();
-      renderNurseList();
-    }
-  });
+  const name = newNurseName.value.trim();
+  if (name) {
+    nurses.push({
+      name,
+      color: getRandomColor(),
+      rank: nurses.length + 1
+    });
+
+    newNurseName.value = '';
+    saveData();
+    renderNurseList();
+    renderCalendar();
+    renderTemplateDay(templateDay1, templateShifts1, 'Template 1');
+    renderTemplateDay(templateDay2, templateShifts2, 'Template 2');
+  }
+});
+  
 
   /** ---------- Calendar ---------- **/
   function createShiftElement(shift, key, shiftIndex) {
-    const shiftDiv = document.createElement('div');
-    shiftDiv.classList.add('shift');
-    shiftDiv.style.backgroundColor = shift.color;
+  const shiftDiv = document.createElement('div');
+  shiftDiv.classList.add('shift');
+  shiftDiv.style.backgroundColor = shift.color;
 
-    const rgb = parseInt(shift.color.slice(1), 16);
-    const r = (rgb >> 16) & 0xff;
-    const g = (rgb >> 8) & 0xff;
-    const b = rgb & 0xff;
-    const brightness = (r * 299 + g * 587 + b * 114) / 1000;
-    shiftDiv.style.color = brightness > 150 ? "#000" : "#fff";
+  const rgb = parseInt(shift.color.slice(1), 16);
+  const r = (rgb >> 16) & 0xff;
+  const g = (rgb >> 8) & 0xff;
+  const b = rgb & 0xff;
+  const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+  shiftDiv.style.color = brightness > 150 ? "#000" : "#fff";
 
-    shiftDiv.textContent = `${shift.name}: ${shift.time}`;
-    shiftDiv.draggable = canEdit;
+  const leaveDisplay = getLeaveDisplay(shift);
+shiftDiv.innerHTML = `${shift.name}: ${leaveDisplay.text}`;
 
-    shiftDiv.addEventListener('click', (e) => {
-      e.stopPropagation();
-    });
+if (leaveDisplay.isLeave) {
+  shiftDiv.classList.add('leave');
+}
 
-    // Right-click to edit remains
+
+  shiftDiv.draggable = canEdit;
+
+  if (canEdit) {
     shiftDiv.addEventListener('contextmenu', (e) => {
       e.preventDefault();
       e.stopPropagation();
-      if (!canEdit) return;
+
+      const currentShift = roster[key].shifts[shiftIndex];
+      if (!currentShift) return;
+
       const newTime = prompt(
-        `Edit shift for ${shift.name} (current: ${shift.time || 'unset'}):`,
-        shift.time || ''
+        `Edit shift time for ${shift.name}:`,
+        currentShift.time || "Shift"
       );
+
       if (newTime !== null) {
         const trimmed = newTime.trim();
-        if (trimmed !== '') {
-          roster[key].shifts[shiftIndex].time = trimmed;
-          saveData();
-          renderCalendar();
-        }
+        currentShift.time = trimmed || "Shift";
+        saveData();
+        renderCalendar();
       }
     });
 
-    if (canEdit) {
-      shiftDiv.addEventListener('dragstart', (e) => {
-        e.dataTransfer.setData('text/plain', JSON.stringify(shift));
-      });
+    shiftDiv.addEventListener('dragstart', (e) => {
+      e.dataTransfer.setData('text/plain', JSON.stringify(shift));
+    });
+  }
+
+  shiftDiv.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (!canEdit) return;
+
+    const currentShift = roster[key].shifts[shiftIndex];
+    if (!currentShift) return;
+
+    const currentLeave = currentShift.leaveType || '';
+    const picked = prompt(
+      `Leave type for ${shift.name}\n\nType one of:\nAL\nSL\nStudy\n\nLeave blank to clear`,
+      currentLeave
+    );
+
+    if (picked === null) return;
+
+    const normalized = picked.trim();
+    const valid = ['', 'AL', 'SL', 'Study'];
+
+    if (!valid.includes(normalized)) {
+      alert('Please enter AL, SL, Study, or leave it blank.');
+      return;
     }
 
-   let pressTimer;
-shiftDiv.addEventListener('pointerdown', () => {
-  if (!canEdit) return;
-  pressTimer = setTimeout(() => {
-    if (confirm(`Delete shift for ${shift.name}?`)) {
+    currentShift.leaveType = normalized;
+    saveData();
+    renderCalendar();
+  });
+
+  if (canEdit) {
+    const deleteBtn = document.createElement('span');
+    deleteBtn.textContent = '×';
+    deleteBtn.className = 'delete-btn';
+    deleteBtn.title = 'Delete shift';
+
+    deleteBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (!confirm(`Delete shift for ${shift.name}?`)) return;
+
       roster[key].shifts.splice(shiftIndex, 1);
       saveData();
       renderCalendar();
-    }
-  }, 800);
-});
+    });
 
-['pointerup', 'pointerleave', 'pointercancel'].forEach(evt => {
-  shiftDiv.addEventListener(evt, () => clearTimeout(pressTimer));
-});
-
-    return shiftDiv;
+    shiftDiv.appendChild(deleteBtn);
   }
+
+  return shiftDiv;
+}
+
 function renderDayCell(year, month, day) {
   const key = `${year}-${month}-${day}`;
-  if (!roster[key]) roster[key] = { shifts: [], notes: '' };
+  if (!roster[key]) roster[key] = { shifts: [], notes: '', isHoliday: false };
+  if (typeof roster[key].isHoliday !== 'boolean') roster[key].isHoliday = false;
 
   const dayCell = document.createElement('div');
   dayCell.classList.add('day');
@@ -1330,21 +1569,37 @@ function renderDayCell(year, month, day) {
   const date = new Date(year, month, day);
   dayCell.dataset.date = date.toDateString();
 
-  if (date.getDay() === 0 || date.getDay() === 6) dayCell.classList.add('weekend');
+  if (roster[key].isHoliday) {
+    dayCell.classList.add('holiday');
+  }
 
-  // Highlight today
+  if (date.getDay() === 0 || date.getDay() === 6) {
+    dayCell.classList.add('weekend');
+  }
+
   const today = new Date();
   if (date.toDateString() === today.toDateString()) {
     dayCell.classList.add('today');
   }
 
-  // Day number + note
   const dayNumber = document.createElement('div');
   dayNumber.classList.add('day-number');
-  dayNumber.innerHTML = day + (roster[key].notes ? `<span class="day-note">${roster[key].notes}</span>` : '');
+  dayNumber.innerHTML =
+    `${day}` +
+    (roster[key].isHoliday ? ` <span class="holiday-badge">Holiday</span>` : '') +
+    (roster[key].notes ? ` <span class="day-note">${roster[key].notes}</span>` : '');
+
   dayNumber.addEventListener('click', (e) => {
     e.stopPropagation();
     if (!canEdit) return;
+
+    if (e.shiftKey) {
+      roster[key].isHoliday = !roster[key].isHoliday;
+      saveData();
+      renderCalendar();
+      return;
+    }
+
     const note = prompt('Enter notes for this day:', roster[key].notes || '');
     if (note !== null) {
       roster[key].notes = note;
@@ -1353,7 +1608,6 @@ function renderDayCell(year, month, day) {
     }
   });
 
-  // Drag handle for shifting all shifts
   const dragHandle = document.createElement('span');
   dragHandle.textContent = '⇅';
   dragHandle.style.cursor = canEdit ? 'grab' : 'default';
@@ -1368,7 +1622,6 @@ function renderDayCell(year, month, day) {
     });
   }
 
-  // Header container
   const header = document.createElement('div');
   header.style.display = 'flex';
   header.style.justifyContent = 'space-between';
@@ -1379,7 +1632,6 @@ function renderDayCell(year, month, day) {
   dayCell.appendChild(header);
 
   if (canEdit) {
-    // Allow drops
     dayCell.addEventListener('dragover', (e) => {
       e.preventDefault();
       dayCell.classList.add('drag-over');
@@ -1393,17 +1645,20 @@ function renderDayCell(year, month, day) {
       e.preventDefault();
       dayCell.classList.remove('drag-over');
 
-      // 1️⃣ Nurse dropped from nurse list
       const nurseIndex = e.dataTransfer.getData('nurseIndex');
       if (nurseIndex !== '') {
         const nurse = nurses[nurseIndex];
-        roster[key].shifts.push({ name: nurse.name, color: nurse.color, time: "Shift" });
+        roster[key].shifts.push({
+          name: nurse.name,
+          color: nurse.color,
+          time: "Shift",
+          leaveType: ""
+        });
         saveData();
         renderCalendar();
         return;
       }
 
-      // 2️⃣ Day-to-day drag (multiple shifts)
       const dayShiftsData = e.dataTransfer.getData('text/day-shifts');
       if (dayShiftsData) {
         const shifts = JSON.parse(dayShiftsData);
@@ -1413,7 +1668,6 @@ function renderDayCell(year, month, day) {
         return;
       }
 
-      // 3️⃣ Single template shift
       const templateShiftData = e.dataTransfer.getData('text/template-shift');
       if (templateShiftData) {
         const shift = JSON.parse(templateShiftData);
@@ -1423,7 +1677,6 @@ function renderDayCell(year, month, day) {
         return;
       }
 
-      // 4️⃣ All-template-shifts drag
       const allTemplateShiftsData = e.dataTransfer.getData('text/all-template-shifts');
       if (allTemplateShiftsData) {
         const shifts = JSON.parse(allTemplateShiftsData);
@@ -1433,7 +1686,6 @@ function renderDayCell(year, month, day) {
         return;
       }
 
-      // 5️⃣ Fallback single shift drag
       const shiftData = e.dataTransfer.getData('text/plain');
       if (shiftData) {
         const shift = JSON.parse(shiftData);
@@ -1444,15 +1696,28 @@ function renderDayCell(year, month, day) {
     });
   }
 
-  // Render all shifts for this day
-  roster[key].shifts.forEach((shift, i) => {
-    dayCell.appendChild(createShiftElement(shift, key, i));
+  const sortedShifts = [...roster[key].shifts].sort((a, b) => {
+    const indexA = getNurseHierarchyIndex(a.name);
+    const indexB = getNurseHierarchyIndex(b.name);
+
+    if (indexA !== indexB) return indexA - indexB;
+    return a.name.localeCompare(b.name);
+  });
+
+  sortedShifts.forEach((shift) => {
+    const originalIndex = roster[key].shifts.findIndex(
+      s =>
+        s.name === shift.name &&
+        s.time === shift.time &&
+        s.color === shift.color &&
+        (s.leaveType || '') === (shift.leaveType || '')
+    );
+
+    dayCell.appendChild(createShiftElement(shift, key, originalIndex));
   });
 
   return dayCell;
 }
-
- 
 function renderCalendar() {
   calendarGrid.innerHTML = '';
 
@@ -1552,26 +1817,43 @@ function syncShiftColorsWithNurses() {
       if (nurse) shift.color = nurse.color;
     });
   }
+
+  [templateShifts1, templateShifts2].forEach(templateShifts => {
+    templateShifts.forEach(shift => {
+      const nurse = nurses.find(n => n.name === shift.name);
+      if (nurse) shift.color = nurse.color;
+    });
+  });
 }
 
 
 // ------------------- TEMPLATE HANDLING -------------------
 
 // ---------------- Template Drag/Drop ----------------
-const templateDay = document.getElementById('templateDay');
-let templateShifts = [];
+const templateDay1 = document.getElementById('templateDay1');
+const templateDay2 = document.getElementById('templateDay2');
+
+let templateShifts1 = [];
+let templateShifts2 = [];
 
 // ---------------- Firestore Template ----------------
 async function loadTemplate() {
   try {
     const docRef = doc(db, "nursesRoster", "main");
     const docSnap = await getDoc(docRef);
+
+    templateShifts1.length = 0;
+    templateShifts2.length = 0;
+
     if (docSnap.exists()) {
-      templateShifts = docSnap.data().templateShifts || [];
-    } else {
-      templateShifts = [];
+      const data = docSnap.data();
+
+      templateShifts1.push(...(data.templateShifts1 || data.templateShifts || []));
+      templateShifts2.push(...(data.templateShifts2 || []));
     }
-    renderTemplateDay();
+
+    renderTemplateDay(templateDay1, templateShifts1, 'Template 1');
+    renderTemplateDay(templateDay2, templateShifts2, 'Template 2');
   } catch (err) {
     console.error("Failed to load template:", err);
   }
@@ -1580,7 +1862,8 @@ async function loadTemplate() {
 async function saveTemplate() {
   try {
     await setDoc(doc(db, "nursesRoster", "main"), {
-      templateShifts: templateShifts.map(s => ({ ...s }))
+      templateShifts1: templateShifts1.map(s => ({ ...s })),
+      templateShifts2: templateShifts2.map(s => ({ ...s }))
     }, { merge: true });
   } catch (err) {
     console.error("Failed to save template:", err);
@@ -1588,15 +1871,15 @@ async function saveTemplate() {
 }
 
 // ---------------- Render Template ----------------
-function renderTemplateDay() {
-  templateDay.innerHTML = '';
+function renderTemplateDay(templateEl, templateShifts, labelText) {
+  templateEl.innerHTML = '';
 
   // Make template day draggable like a real day
-  templateDay.draggable = canEdit;
+  templateEl.draggable = canEdit;
 
-  // ✅ NEW: allow dragging the ENTIRE template day (not just ⇅)
+  // allow dragging the ENTIRE template day
   if (canEdit) {
-    templateDay.addEventListener('dragstart', (e) => {
+    templateEl.addEventListener('dragstart', (e) => {
       e.stopPropagation();
       e.dataTransfer.setData(
         'text/day-shifts',
@@ -1613,7 +1896,7 @@ function renderTemplateDay() {
 
   const label = document.createElement('div');
   label.className = 'day-number';
-  label.textContent = 'Template';
+  label.textContent = labelText;
 
   const dragHandle = document.createElement('span');
   dragHandle.textContent = '⇅';
@@ -1632,17 +1915,40 @@ function renderTemplateDay() {
 
   header.appendChild(label);
   header.appendChild(dragHandle);
-  templateDay.appendChild(header);
+  templateEl.appendChild(header);
+
+  // ---------- Sort shifts by nurse rank ----------
+  const sortedTemplateShifts = [...templateShifts].sort((a, b) => {
+  const indexA = getNurseHierarchyIndex(a.name);
+  const indexB = getNurseHierarchyIndex(b.name);
+
+  if (indexA !== indexB) return indexA - indexB;
+  return a.name.localeCompare(b.name);
+});
 
   // ---------- Shifts ----------
-  templateShifts.forEach((shift, idx) => {
+  sortedTemplateShifts.forEach((shift) => {
+    const idx = templateShifts.findIndex(
+  s =>
+    s.name === shift.name &&
+    s.time === shift.time &&
+    s.color === shift.color &&
+    (s.leaveType || '') === (shift.leaveType || '')
+);
+
     const shiftDiv = document.createElement('div');
     shiftDiv.className = 'shift';
     shiftDiv.style.backgroundColor = shift.color;
-    shiftDiv.textContent = `${shift.name}: ${shift.time || 'Shift'}`;
+    
+	const leaveDisplay = getLeaveDisplay(shift);
+shiftDiv.innerHTML = `${shift.name}: ${leaveDisplay.text}`;
+
+if (leaveDisplay.isLeave) {
+  shiftDiv.classList.add('leave');
+}
     shiftDiv.draggable = canEdit;
 
-    // ---- RIGHT CLICK = EDIT ----
+    // RIGHT CLICK = EDIT
     shiftDiv.addEventListener('contextmenu', (e) => {
       e.preventDefault();
       if (!canEdit) return;
@@ -1656,131 +1962,173 @@ function renderTemplateDay() {
         const trimmed = newTime.trim();
         if (trimmed !== '') {
           templateShifts[idx].time = trimmed;
-          renderTemplateDay();
+          renderTemplateDay(templateEl, templateShifts, labelText);
           saveTemplate();
         }
       }
     });
-
-    // ---- LONG PRESS = DELETE ----
-  
-let pressTimer;
-shiftDiv.addEventListener('pointerdown', () => {
+	shiftDiv.addEventListener('click', (e) => {
+  e.stopPropagation();
   if (!canEdit) return;
-  pressTimer = setTimeout(() => {
-    if (confirm(`Delete shift for ${shift.name} from template?`)) {
-      templateShifts.splice(idx, 1);
-      renderTemplateDay();
-      saveTemplate();
-    }
-  }, 800);
+
+  const currentLeave = templateShifts[idx].leaveType || '';
+  const picked = prompt(
+    `Leave type for ${shift.name}\n\nType one of:\nAL\nSL\nStudy\n\nLeave blank to clear`,
+    currentLeave
+  );
+
+  if (picked === null) return;
+
+  const normalized = picked.trim();
+  const valid = ['', 'AL', 'SL', 'Study'];
+
+  if (!valid.includes(normalized)) {
+    alert('Please enter AL, SL, Study, or leave it blank.');
+    return;
+  }
+
+  templateShifts[idx].leaveType = normalized;
+  saveTemplate();
+  renderTemplateDay(templateEl, templateShifts, labelText);
 });
 
-['pointerup', 'pointerleave', 'pointercancel'].forEach(evt => {
-  shiftDiv.addEventListener(evt, () => clearTimeout(pressTimer));
-});
-    templateDay.appendChild(shiftDiv);
+  if (canEdit) {
+  const deleteBtn = document.createElement('span');
+  deleteBtn.textContent = '×';
+  deleteBtn.className = 'delete-btn';
+  deleteBtn.title = `Delete shift for ${shift.name}`;
+
+  deleteBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (!confirm(`Delete shift for ${shift.name} from ${labelText}?`)) return;
+
+    templateShifts.splice(idx, 1);
+    saveTemplate();
+    renderTemplateDay(templateEl, templateShifts, labelText);
+  });
+
+  shiftDiv.appendChild(deleteBtn);
+}
+
+    templateEl.appendChild(shiftDiv);
   });
 }
 
 
 // ---------------- Template Drag/Drop ----------------
-function setupTemplateDragDrop() {
-  templateDay.addEventListener('dragover', e => {
+function setupTemplateDragDrop(templateEl, templateShifts, labelText) {
+  templateEl.addEventListener('dragover', e => {
     e.preventDefault();
-    templateDay.classList.add('drag-over');
+    templateEl.classList.add('drag-over');
   });
 
-  templateDay.addEventListener('dragleave', () => templateDay.classList.remove('drag-over'));
+  templateEl.addEventListener('dragleave', () => {
+    templateEl.classList.remove('drag-over');
+  });
 
-  templateDay.addEventListener('drop', e => {
+  templateEl.addEventListener('drop', e => {
     e.preventDefault();
-    templateDay.classList.remove('drag-over');
+    templateEl.classList.remove('drag-over');
     if (!canEdit) return;
 
-    // Nurse dragged from left list
+    // 1. Nurse dragged from nurse list
     const nurseIndex = e.dataTransfer.getData('nurseIndex');
     if (nurseIndex !== '') {
       const nurse = nurses[nurseIndex];
       if (!templateShifts.some(s => s.name === nurse.name)) {
-        templateShifts.push({ name: nurse.name, color: nurse.color, time: "Shift" });
-        renderTemplateDay();
+        templateShifts.push({
+          name: nurse.name,
+          color: nurse.color,
+          time: "Shift",
+          leaveType: ""
+        });
+        renderTemplateDay(templateEl, templateShifts, labelText);
         saveTemplate();
       }
       return;
     }
 
-    // Single shift dragged
+    // 2. Full day dragged from calendar/template drag handle
+    const dayShiftsData = e.dataTransfer.getData('text/day-shifts');
+    if (dayShiftsData) {
+      const shifts = JSON.parse(dayShiftsData);
+
+      shifts.forEach(shift => {
+        if (!templateShifts.some(
+          s =>
+            s.name === shift.name &&
+            s.time === shift.time &&
+            (s.leaveType || '') === (shift.leaveType || '')
+        )) {
+          templateShifts.push({ ...shift });
+        }
+      });
+
+      renderTemplateDay(templateEl, templateShifts, labelText);
+      saveTemplate();
+      return;
+    }
+
+    // 3. Single template shift dragged
     const templateShiftData = e.dataTransfer.getData('text/template-shift');
     if (templateShiftData) {
       const shift = JSON.parse(templateShiftData);
-      if (!templateShifts.some(s => s.name === shift.name && s.time === shift.time)) {
+      if (!templateShifts.some(
+        s =>
+          s.name === shift.name &&
+          s.time === shift.time &&
+          (s.leaveType || '') === (shift.leaveType || '')
+      )) {
         templateShifts.push({ ...shift });
-        renderTemplateDay();
+        renderTemplateDay(templateEl, templateShifts, labelText);
         saveTemplate();
       }
       return;
     }
 
-    // All template shifts dragged
+    // 4. All template shifts dragged
     const allTemplateShiftsData = e.dataTransfer.getData('text/all-template-shifts');
     if (allTemplateShiftsData) {
       const shifts = JSON.parse(allTemplateShiftsData);
       shifts.forEach(s => {
-        if (!templateShifts.some(t => t.name === s.name && t.time === s.time)) templateShifts.push({ ...s });
+        if (!templateShifts.some(
+          t =>
+            t.name === s.name &&
+            t.time === s.time &&
+            (t.leaveType || '') === (s.leaveType || '')
+        )) {
+          templateShifts.push({ ...s });
+        }
       });
-      renderTemplateDay();
+      renderTemplateDay(templateEl, templateShifts, labelText);
       saveTemplate();
+      return;
+    }
+
+    // 5. Single shift dragged from calendar
+    const singleShiftData = e.dataTransfer.getData('text/plain');
+    if (singleShiftData) {
+      const shift = JSON.parse(singleShiftData);
+      if (!templateShifts.some(
+        s =>
+          s.name === shift.name &&
+          s.time === shift.time &&
+          (s.leaveType || '') === (shift.leaveType || '')
+      )) {
+        templateShifts.push({ ...shift });
+        renderTemplateDay(templateEl, templateShifts, labelText);
+        saveTemplate();
+      }
     }
   });
 }
-
-setupTemplateDragDrop();
+setupTemplateDragDrop(templateDay1, templateShifts1, 'Template 1');
+setupTemplateDragDrop(templateDay2, templateShifts2, 'Template 2');
 loadTemplate();
 syncCalendarScroll();
 
 // ---------------- Day Cell Drop ----------------
-function handleDayDrop(dayCell) {
-  dayCell.addEventListener('dragover', e => { e.preventDefault(); dayCell.classList.add('drag-over'); });
-  dayCell.addEventListener('dragleave', () => dayCell.classList.remove('drag-over'));
-  dayCell.addEventListener('drop', e => {
-    e.preventDefault();
-    dayCell.classList.remove('drag-over');
-    if (!canEdit) return;
 
-    const key = dayCell.dataset.dayKey;
-    if (!roster[key]) roster[key] = { shifts: [], notes: '' };
-
-    // Nurse dragged
-    const nurseIndex = e.dataTransfer.getData('nurseIndex');
-    if (nurseIndex !== '') {
-      const nurse = nurses[nurseIndex];
-      roster[key].shifts.push({ name: nurse.name, color: nurse.color, time: 'Shift' });
-      saveData();
-      renderCalendar();
-      return;
-    }
-
-    // Template shift dragged
-    const templateShiftData = e.dataTransfer.getData('text/template-shift');
-    if (templateShiftData) {
-      const shift = JSON.parse(templateShiftData);
-      roster[key].shifts.push({ ...shift });
-      saveData();
-      renderCalendar();
-      return;
-    }
-
-    // All template shifts
-    const allTemplateShiftsData = e.dataTransfer.getData('text/all-template-shifts');
-    if (allTemplateShiftsData) {
-      const shifts = JSON.parse(allTemplateShiftsData);
-      shifts.forEach(s => roster[key].shifts.push({ ...s }));
-      saveData();
-      renderCalendar();
-    }
-  });
-}
 authToggleBtn.addEventListener('click', () => {
   openAuthModal();
 });
