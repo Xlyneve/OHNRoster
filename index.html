@@ -1138,28 +1138,26 @@ closeAuthModal();
     updateUIOnAuth();
   });
  
-  function updateUIOnAuth() {
-    if (currentUser) {
-      userStatus.textContent = `Signed in as ${currentUser.email}`;
-      loginBtn.style.display = 'none';
-      emailInput.style.display = 'none';
-      passwordInput.style.display = 'none';
-      logoutBtn.style.display = 'inline-block';
-    } else {
-      userStatus.textContent = 'Not signed in';
-      loginBtn.style.display = 'inline-block';
-      emailInput.style.display = 'inline-block';
-      passwordInput.style.display = 'inline-block';
-      logoutBtn.style.display = 'none';
-    }
-	
-	 authToggleBtn.textContent = currentUser ? '✅' : '👤';
-authToggleBtn.setAttribute('aria-label', currentUser ? 'Open account menu' : 'Open sign in');
-
-
-    checkEditPermission();
-    loadData();
+ function updateUIOnAuth() {
+  if (currentUser) {
+    userStatus.textContent = `Signed in as ${currentUser.email}`;
+    loginBtn.style.display = 'none';
+    emailInput.style.display = 'none';
+    passwordInput.style.display = 'none';
+    logoutBtn.style.display = 'inline-block';
+  } else {
+    userStatus.textContent = 'Not signed in';
+    loginBtn.style.display = 'inline-block';
+    emailInput.style.display = 'inline-block';
+    passwordInput.style.display = 'inline-block';
+    logoutBtn.style.display = 'none';
   }
+
+  authToggleBtn.textContent = currentUser ? '✅' : '👤';
+  authToggleBtn.setAttribute('aria-label', currentUser ? 'Open account menu' : 'Open sign in');
+
+  checkEditPermission();
+}
 
   function checkEditPermission() {
     canEdit = currentUser && authorizedUIDs.includes(currentUser.uid);
@@ -1174,19 +1172,17 @@ function closeAuthModal() {
 }
 
   function toggleEditUI() {
-    addNurseBtn.disabled = !canEdit;
-    newNurseName.disabled = !canEdit;
-    addNurseBtn.style.opacity = canEdit ? '1' : '0.5';
-    newNurseName.style.opacity = canEdit ? '1' : '0.5';
+  addNurseBtn.disabled = !canEdit;
+  newNurseName.disabled = !canEdit;
+  addNurseBtn.style.opacity = canEdit ? '1' : '0.5';
+  newNurseName.style.opacity = canEdit ? '1' : '0.5';
 
-    const nurseList = document.querySelector('.nurse-list');
-    nurseList.style.display = currentUser ? 'block' : 'none';
+  const nurseList = document.querySelector('.nurse-list');
+  nurseList.style.display = currentUser ? 'block' : 'none';
 
-    document.body.classList.toggle('logged-in', !!currentUser);
-
-    renderNurseList();
-    renderCalendar();
-  }
+  document.body.classList.toggle('logged-in', !!currentUser);
+}
+  
 function showRosterStatus(message) {
   if (!rosterStatus) return;
   rosterStatus.textContent = message;
@@ -1199,28 +1195,39 @@ function hideRosterStatus() {
   rosterStatus.classList.remove('show');
 }
   /** ---------- Firebase Data ---------- **/
-  async function loadData() {
+ async function loadData() {
   try {
-    hideRosterStatus();
+    showRosterStatus("Loading roster...");
 
     const docRef = doc(db, "nursesRoster", "main");
     const docSnap = await getDoc(docRef);
 
     if (docSnap.exists()) {
       const data = docSnap.data();
+
       roster = data.roster || {};
       nurses = data.nurses || nurses;
+
+      templateShifts1.length = 0;
+      templateShifts2.length = 0;
+
+      templateShifts1.push(...(data.templateShifts1 || data.templateShifts || []));
+      templateShifts2.push(...(data.templateShifts2 || []));
     } else {
       roster = {};
+      templateShifts1.length = 0;
+      templateShifts2.length = 0;
     }
 
     normalizeNurseRanks();
     syncShiftColorsWithNurses();
+
     renderNurseList();
     renderCalendar();
     renderTemplateDay(templateDay1, templateShifts1, 'Template 1');
     renderTemplateDay(templateDay2, templateShifts2, 'Template 2');
 
+    hideRosterStatus();
   } catch (error) {
     console.error("Failed to load data from Firestore:", error);
 
@@ -1233,7 +1240,6 @@ function hideRosterStatus() {
     showRosterStatus("Roster could not be loaded right now.");
   }
 }
-
 function normalizeNurseRanks() {
   nurses.forEach((nurse, index) => {
     if (typeof nurse.rank !== 'number' || isNaN(nurse.rank)) {
@@ -1837,27 +1843,7 @@ let templateShifts1 = [];
 let templateShifts2 = [];
 
 // ---------------- Firestore Template ----------------
-async function loadTemplate() {
-  try {
-    const docRef = doc(db, "nursesRoster", "main");
-    const docSnap = await getDoc(docRef);
 
-    templateShifts1.length = 0;
-    templateShifts2.length = 0;
-
-    if (docSnap.exists()) {
-      const data = docSnap.data();
-
-      templateShifts1.push(...(data.templateShifts1 || data.templateShifts || []));
-      templateShifts2.push(...(data.templateShifts2 || []));
-    }
-
-    renderTemplateDay(templateDay1, templateShifts1, 'Template 1');
-    renderTemplateDay(templateDay2, templateShifts2, 'Template 2');
-  } catch (err) {
-    console.error("Failed to load template:", err);
-  }
-}
 
 async function saveTemplate() {
   try {
@@ -2124,8 +2110,8 @@ function setupTemplateDragDrop(templateEl, templateShifts, labelText) {
 }
 setupTemplateDragDrop(templateDay1, templateShifts1, 'Template 1');
 setupTemplateDragDrop(templateDay2, templateShifts2, 'Template 2');
-loadTemplate();
 syncCalendarScroll();
+loadData();
 
 // ---------------- Day Cell Drop ----------------
 
