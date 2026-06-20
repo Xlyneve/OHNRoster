@@ -67,6 +67,255 @@ body::after {
 .calendar-inner {
   width: 100%;
 }
+
+.notice-board {
+  flex: 0 0 235px;
+  width: 235px;
+  max-width: 235px;
+
+  position: sticky;
+  top: 110px;
+  align-self: flex-start;
+
+  height: auto;
+  min-height: auto;
+  max-height: calc(100vh - 140px);
+  overflow-y: auto;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255,255,255,0.72),
+      rgba(255,255,255,0.32)
+    );
+  backdrop-filter: blur(22px) saturate(180%);
+  -webkit-backdrop-filter: blur(22px) saturate(180%);
+
+  border-radius: 16px;
+  border: 1px solid rgba(255,255,255,0.65);
+
+  box-shadow:
+    0 8px 22px rgba(0,0,0,0.10),
+    0 0 14px rgba(255,255,255,0.35);
+
+  padding: 9px;
+  box-sizing: border-box;
+}
+
+.notice-toggle {
+  width: 100%;
+  border: none;
+  border-radius: 999px;
+  padding: 10px 12px;
+  cursor: pointer;
+
+  font-size: 0.95rem;
+  font-weight: 800;
+  letter-spacing: 0.2px;
+
+  background: #ff9800;
+  color: white;
+
+  border: 1px solid rgba(255, 255, 255, 0.65);
+
+  box-shadow:
+    0 6px 18px rgba(0,0,0,0.10),
+    0 0 14px rgba(255,255,255,0.75),
+    inset 0 0 10px rgba(255,255,255,0.28);
+}
+
+.notice-toggle:hover {
+  background: #e68900;
+
+  box-shadow:
+    0 7px 20px rgba(0,0,0,0.12),
+    0 0 18px rgba(255,255,255,0.9),
+    inset 0 0 12px rgba(255,255,255,0.34);
+}
+
+
+.notice-content {
+  margin-top: 10px;
+  display: block;
+}
+
+.notice-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.notice-card {
+  position: relative;
+
+  display: block;
+  height: auto !important;
+  min-height: 0 !important;
+
+  background: rgba(255,255,255,0.78);
+  border: 1px solid rgba(255,255,255,0.72);
+  border-radius: 11px;
+
+  padding: 7px 8px 7px 12px;
+
+  font-size: 0.82rem;
+  line-height: 1.25;
+  color: #222;
+
+  white-space: normal;
+
+  box-shadow:
+    0 4px 12px rgba(0,0,0,0.06),
+    inset 0 0 0 1px rgba(255,255,255,0.42);
+}
+
+.notice-card::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 10px;
+  bottom: 10px;
+  width: 4px;
+  border-radius: 999px;
+}
+
+.notice-0::before {
+  background: #feffa3;
+  box-shadow: 0 0 12px rgba(254,255,163,0.9);
+}
+
+.notice-1::before {
+  background: #ffd6ee;
+  box-shadow: 0 0 12px rgba(255,214,238,0.9);
+}
+
+.notice-2::before {
+  background: #dbdcff;
+  box-shadow: 0 0 12px rgba(219,220,255,0.9);
+}
+
+.notice-3::before {
+  background: #f55cff;
+  box-shadow: 0 0 12px rgba(245,92,255,0.7);
+}
+
+.notice-card.empty {
+  text-align: center;
+  color: #555;
+  font-style: italic;
+}
+
+.notice-card-text {
+  margin: 0 0 5px 0;
+  padding: 4px 5px;
+  line-height: 1.3;
+  white-space: pre-wrap;
+  border-radius: 8px;
+  min-height: 18px;
+}
+
+.notice-card-text.editing {
+  background: rgba(255,255,255,0.92);
+  outline: 1px solid rgba(255, 152, 0, 0.55);
+  box-shadow:
+    inset 0 2px 8px rgba(0,0,0,0.04),
+    0 0 10px rgba(255,255,255,0.55);
+  cursor: text;
+}
+
+.notice-actions {
+  justify-content: flex-end;
+  gap: 5px;
+}
+
+.notice-actions button {
+  border: none;
+  border-radius: 999px;
+  padding: 2px 7px;
+
+  font-size: 0.68rem;
+  cursor: pointer;
+
+  background: rgba(255,255,255,0.78);
+  color: #333;
+
+  box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+}
+
+.notice-actions button:hover {
+  background: rgba(254,255,163,0.9);
+}
+
+.notice-editor {
+  margin-top: 12px;
+  display: none;
+}
+
+.notice-editor textarea {
+  width: 100%;
+  min-height: 85px;
+  resize: vertical;
+  box-sizing: border-box;
+
+  padding: 9px;
+  border-radius: 12px;
+  border: 1px solid rgba(180,180,180,0.55);
+
+  font-family: Arial, sans-serif;
+  font-size: 0.85rem;
+
+  background: rgba(255,255,255,0.78);
+  color: #333;
+
+  box-shadow: inset 0 2px 8px rgba(0,0,0,0.04);
+}
+
+.notice-editor button {
+  width: 100%;
+  margin-top: 7px;
+  font-weight: 700;
+
+  background: #ff9800;
+  color: white;
+
+  box-shadow:
+    0 4px 12px rgba(255, 152, 0, 0.22),
+    0 0 10px rgba(255,255,255,0.45);
+}
+
+.notice-editor button:hover {
+  background: #e68900;
+}
+
+.notice-inline-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.notice-inline-actions button {
+  border: none;
+  border-radius: 999px;
+  padding: 3px 8px;
+  font-size: 0.7rem;
+  cursor: pointer;
+  background: rgba(255,255,255,0.82);
+  color: #333;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+}
+
+.notice-save-edit-btn {
+  background: #ff9800 !important;
+  color: white !important;
+}
+
+.notice-cancel-edit-btn:hover,
+.notice-delete-btn:hover,
+.notice-edit-btn:hover {
+  background: rgba(255, 152, 0, 0.14);
+}
+
 .jump-date-picker {
   position: absolute;
   opacity: 0;
@@ -681,12 +930,50 @@ footer {
   body {
     overflow-x: hidden;
   }
+  
+    .container {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .notice-board {
+    order: -1;
+    position: relative;
+    top: auto;
+
+    width: 100%;
+    max-width: 100%;
+    flex: none;
+
+    max-height: none;
+    margin-bottom: 12px;
+
+    background: rgba(255,255,255,0.85);
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
+  .notice-board {
+  max-height: none;
+  overflow-y: visible;
+}
+
+  .notice-board.open .notice-content {
+    display: block;
+  }
+
+  .calendar {
+    order: 1;
+  }
+
+  .nurse-list {
+    order: 2;
+  }
 
   .container {
-    display: block;
-    padding: 10px;
-    max-width: 100%;
-  }
+  padding: 10px;
+  max-width: 100%;
+}
 
   .main-header {
     padding: 10px;
@@ -984,12 +1271,31 @@ footer {
     </div>
   </div>
 
-  <div class="calendar-scroll-wrapper calendar-grid-scroll" id="gridScroll">
-  <div class="calendar-inner">
-    <div class="calendar-grid" id="calendarGrid"></div>
+    <div class="calendar-scroll-wrapper calendar-grid-scroll" id="gridScroll">
+    <div class="calendar-inner">
+      <div class="calendar-grid" id="calendarGrid"></div>
     </div>
   </div>
 </div>
+
+<!-- Nurse Reminder Board -->
+<div class="notice-board" id="noticeBoard">
+  <button id="noticeToggleBtn" class="notice-toggle" type="button">
+    📌 Nurse reminders
+  </button>
+
+  <div id="noticeContent" class="notice-content">
+    <div id="noticeList" class="notice-list">
+      Loading reminders...
+    </div>
+
+    <div id="noticeEditor" class="notice-editor">
+      <textarea id="noticeInput" placeholder="Add reminder for nurses..."></textarea>
+      <button id="addNoticeBtn" class="btn">Add Reminder</button>
+    </div>
+  </div>
+</div>
+
   </div>
 
   <footer>CEP/C 2025</footer>
@@ -1045,6 +1351,15 @@ const closeAuthModalBtn = document.getElementById('closeAuthModalBtn');
 const gridScroll = document.getElementById('gridScroll');
 
 const rosterStatus = document.getElementById('rosterStatus');
+const noticeBoard = document.getElementById('noticeBoard');
+const noticeToggleBtn = document.getElementById('noticeToggleBtn');
+const noticeContent = document.getElementById('noticeContent');
+const noticeList = document.getElementById('noticeList');
+const noticeEditor = document.getElementById('noticeEditor');
+const noticeInput = document.getElementById('noticeInput');
+const addNoticeBtn = document.getElementById('addNoticeBtn');
+
+let nurseReminders = [];
 
   let currentUser = null;
   let canEdit = false;  // controls if editing is allowed
@@ -1178,9 +1493,18 @@ function closeAuthModal() {
   newNurseName.style.opacity = canEdit ? '1' : '0.5';
 
   const nurseList = document.querySelector('.nurse-list');
+
+  // Left admin panel only appears when signed in
   nurseList.style.display = currentUser ? 'block' : 'none';
 
+  // Reminder editor only appears for authorised editor
+  if (noticeEditor) {
+    noticeEditor.style.display = canEdit ? 'block' : 'none';
+  }
+
   document.body.classList.toggle('logged-in', !!currentUser);
+
+  renderNoticeBoard();
 }
   
 function showRosterStatus(message) {
@@ -1207,6 +1531,22 @@ function hideRosterStatus() {
 
       roster = data.roster || {};
       nurses = data.nurses || nurses;
+	  nurseReminders = data.nurseReminders || [];
+
+// Backward compatibility if you previously saved one single reminder
+if (!Array.isArray(nurseReminders)) {
+  nurseReminders = [];
+}
+
+if (nurseReminders.length === 0 && data.nurseNotice) {
+  nurseReminders = [
+    {
+      id: Date.now(),
+      text: data.nurseNotice
+    }
+  ];
+}
+	  
 
       templateShifts1.length = 0;
       templateShifts2.length = 0;
@@ -1214,18 +1554,20 @@ function hideRosterStatus() {
       templateShifts1.push(...(data.templateShifts1 || data.templateShifts || []));
       templateShifts2.push(...(data.templateShifts2 || []));
     } else {
-      roster = {};
-      templateShifts1.length = 0;
-      templateShifts2.length = 0;
-    }
+  roster = {};
+  nurseReminders = [];
+  templateShifts1.length = 0;
+  templateShifts2.length = 0;
+}
 
     normalizeNurseRanks();
     syncShiftColorsWithNurses();
 
     renderNurseList();
-    renderCalendar();
-    renderTemplateDay(templateDay1, templateShifts1, 'Template 1');
-    renderTemplateDay(templateDay2, templateShifts2, 'Template 2');
+	renderCalendar();
+	renderTemplateDay(templateDay1, templateShifts1, 'Template 1');
+	renderTemplateDay(templateDay2, templateShifts2, 'Template 2');
+	renderNoticeBoard();
 
     hideRosterStatus();
   } catch (error) {
@@ -1233,9 +1575,10 @@ function hideRosterStatus() {
 
     roster = roster || {};
     renderNurseList();
-    renderCalendar();
-    renderTemplateDay(templateDay1, templateShifts1, 'Template 1');
-    renderTemplateDay(templateDay2, templateShifts2, 'Template 2');
+	renderCalendar();
+	renderTemplateDay(templateDay1, templateShifts1, 'Template 1');
+	renderTemplateDay(templateDay2, templateShifts2, 'Template 2');
+	renderNoticeBoard();
 
     showRosterStatus("Roster could not be loaded right now.");
   }
@@ -1264,6 +1607,168 @@ function getNurseHierarchyIndex(nurseName) {
     console.error("Error saving data:", error);
     alert("Failed to save data. Check console.");
   }
+}
+
+function renderNoticeBoard() {
+  if (!noticeList || !noticeInput || !noticeEditor) return;
+
+  if (!Array.isArray(nurseReminders)) {
+    nurseReminders = [];
+  }
+
+  if (nurseReminders.length === 0) {
+    noticeList.innerHTML = `
+      <div class="notice-card empty">
+        ✨ No reminders at the moment.
+      </div>
+    `;
+  } else {
+    noticeList.innerHTML = nurseReminders.map((reminder, index) => {
+  return `
+    <div class="notice-card notice-${index % 4}" data-id="${reminder.id}">
+      <div class="notice-card-text" id="noticeText-${reminder.id}" contenteditable="false">${escapeHtml(reminder.text)}</div>
+
+      <div class="notice-inline-actions" id="noticeActions-${reminder.id}" style="display:none;">
+        <button type="button" class="notice-save-edit-btn" data-id="${reminder.id}">Save</button>
+        <button type="button" class="notice-cancel-edit-btn" data-id="${reminder.id}">Cancel</button>
+      </div>
+
+      <div class="notice-actions" style="display:${canEdit ? 'flex' : 'none'};">
+        <button type="button" class="notice-edit-btn" data-id="${reminder.id}">Edit</button>
+        <button type="button" class="notice-delete-btn" data-id="${reminder.id}">Delete</button>
+      </div>
+    </div>
+  `;
+}).join('');
+  }
+
+  noticeInput.value = '';
+  noticeEditor.style.display = canEdit ? 'block' : 'none';
+
+  document.querySelectorAll('.notice-edit-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      openInlineReminderEditor(Number(btn.dataset.id));
+    });
+  });
+
+  document.querySelectorAll('.notice-delete-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      deleteReminder(Number(btn.dataset.id));
+    });
+  });
+
+  document.querySelectorAll('.notice-save-edit-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      saveInlineReminderEdit(Number(btn.dataset.id));
+    });
+  });
+
+  document.querySelectorAll('.notice-cancel-edit-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      renderNoticeBoard();
+    });
+  });
+}
+
+async function saveReminderList() {
+  if (!canEdit) {
+    alert("You do not have permission to edit reminders.");
+    return;
+  }
+
+  try {
+    await setDoc(doc(db, "nursesRoster", "main"), {
+      nurseReminders
+    }, { merge: true });
+
+    renderNoticeBoard();
+  } catch (error) {
+    console.error("Failed to save reminders:", error);
+    alert("Failed to save reminders. Check console.");
+  }
+}
+
+function addReminder() {
+  if (!canEdit) {
+    alert("You do not have permission to add reminders.");
+    return;
+  }
+
+  const text = noticeInput.value.trim();
+
+  if (!text) {
+    alert("Please type a reminder first.");
+    return;
+  }
+
+  nurseReminders.unshift({
+    id: Date.now(),
+    text
+  });
+
+  noticeInput.value = '';
+  saveReminderList();
+}
+
+function openInlineReminderEditor(id) {
+  if (!canEdit) return;
+
+  const textDiv = document.getElementById(`noticeText-${id}`);
+  const actionDiv = document.getElementById(`noticeActions-${id}`);
+
+  if (!textDiv || !actionDiv) return;
+
+  textDiv.setAttribute('contenteditable', 'true');
+  textDiv.classList.add('editing');
+
+  actionDiv.style.display = 'flex';
+
+  textDiv.focus();
+
+  const range = document.createRange();
+  range.selectNodeContents(textDiv);
+  range.collapse(false);
+
+  const selection = window.getSelection();
+  selection.removeAllRanges();
+  selection.addRange(range);
+}
+
+function saveInlineReminderEdit(id) {
+  if (!canEdit) return;
+
+  const reminder = nurseReminders.find(item => item.id === id);
+  const textDiv = document.getElementById(`noticeText-${id}`);
+
+  if (!reminder || !textDiv) return;
+
+  const trimmed = textDiv.innerText.trim();
+
+  if (!trimmed) {
+    alert("Reminder cannot be empty.");
+    return;
+  }
+
+  reminder.text = trimmed;
+  saveReminderList();
+}
+
+function deleteReminder(id) {
+  if (!canEdit) return;
+
+  if (!confirm("Delete this reminder?")) return;
+
+  nurseReminders = nurseReminders.filter(item => item.id !== id);
+  saveReminderList();
+}
+
+function escapeHtml(text) {
+  return text
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
 }
 
 function getLeaveDisplay(shift) {
@@ -2113,7 +2618,33 @@ setupTemplateDragDrop(templateDay2, templateShifts2, 'Template 2');
 syncCalendarScroll();
 loadData();
 
-// ---------------- Day Cell Drop ----------------
+if (addNoticeBtn) {
+  addNoticeBtn.addEventListener('click', () => {
+    addReminder();
+  });
+}
+
+if (noticeToggleBtn && noticeBoard) {
+  noticeToggleBtn.addEventListener('click', () => {
+    noticeBoard.classList.toggle('open');
+  });
+}
+
+/* Desktop = open reminders by default
+   Mobile = collapsed by default */
+function setNoticeDefaultState() {
+  if (!noticeBoard) return;
+
+  if (window.innerWidth > 900) {
+    noticeBoard.classList.add('open');
+  } else {
+    noticeBoard.classList.remove('open');
+  }
+}
+
+setNoticeDefaultState();
+
+window.addEventListener('resize', setNoticeDefaultState);
 
 authToggleBtn.addEventListener('click', () => {
   openAuthModal();
