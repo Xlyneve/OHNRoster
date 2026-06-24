@@ -1251,10 +1251,29 @@ footer {
     0 4px 8px rgba(0,0,0,0.14);
 }
 
-  .day.holiday::after,
+  .day.holiday {
+  padding-top: 18px;
+}
+
+.day.holiday::after {
+  top: -13px;
+  right: 8px;
+  z-index: 22;
+
+  padding: 3px 9px;
+  font-size: 0.56rem;
+  letter-spacing: 0.55px;
+
+  transform: rotate(-1deg);
+}
+
 .day.today:not(.holiday)::after {
-  top: -8px;
-  z-index: 20;
+  top: -10px;
+  right: 8px;
+  z-index: 22;
+
+  padding: 3px 9px;
+  font-size: 0.56rem;
 }
 
   .calendar-inner {
