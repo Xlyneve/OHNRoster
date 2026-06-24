@@ -1229,8 +1229,13 @@ footer {
   }
 
   .calendar-grid-scroll {
-    margin-top: 6px;
+    margin-top: 20px;
   }
+  
+  .day.holiday::after,
+.day.today:not(.holiday)::after {
+  top: -11px;
+}
 
   .calendar-inner {
     min-width: 820px;
