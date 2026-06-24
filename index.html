@@ -1181,11 +1181,11 @@ footer {
     position: relative;
   }
 
-  .calendar-top-sticky {
-    position: -webkit-sticky;
-    position: sticky;
-    top: 0;
-    z-index: 80;
+	.calendar-top-sticky {
+	position: -webkit-sticky;
+	position: sticky;
+	top: 0;
+	z-index: 50;
     background: #fff;
     padding-bottom: 6px;
     box-shadow: 0 4px 10px rgba(0,0,0,0.06);
@@ -1232,9 +1232,15 @@ footer {
     margin-top: 25px;
   }
   
-  .day.holiday::after,
+  .day.holiday,
+.day.today {
+  z-index: 120;
+}
+
+.day.holiday::after,
 .day.today:not(.holiday)::after {
   top: -11px;
+  z-index: 130;
 }
 
   .calendar-inner {
