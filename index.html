@@ -555,6 +555,28 @@ body::after {
 .nurse-list.nurse-panel-collapsed .nurse-panel-header {
   justify-content: center;
 }
+
+.template-heading-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.template-heading-row h4 {
+  margin: 0;
+}
+
+.remove-template-btn {
+  padding: 4px 8px;
+  font-size: 0.72rem;
+}
+
+.add-template-btn {
+  width: 100%;
+  margin: 10px 0 4px;
+}
 body.logged-in .nurse-list {
   position: sticky;
   top: 0;
@@ -1514,6 +1536,8 @@ footer {
 
 <h4 style="margin-top:12px;">Template Day 2</h4>
 <div id="templateDay2" class="day" style="min-height:120px;"></div>
+<div id="extraTemplateContainer"></div>
+<button id="addTemplateBtn" class="btn add-template-btn" type="button">+ Add Template</button>
 
       <div class="add-nurse">
         <input type="text" id="newNurseName" placeholder="Add Nurse">
@@ -1632,6 +1656,8 @@ const closeAuthModalBtn = document.getElementById('closeAuthModalBtn');
   const nurseContainer = document.getElementById('nurseContainer');
   const newNurseName = document.getElementById('newNurseName');
   const addNurseBtn = document.getElementById('addNurseBtn');
+  const addTemplateBtn = document.getElementById('addTemplateBtn');
+  const extraTemplateContainer = document.getElementById('extraTemplateContainer');
   const nursePanelToggle = document.getElementById('nursePanelToggle');
   const weekdaysScroll = document.getElementById('weekdaysScroll');
 const gridScroll = document.getElementById('gridScroll');
@@ -1810,6 +1836,7 @@ function closeAuthModal() {
   newNurseName.disabled = !canEdit;
   addNurseBtn.style.opacity = canEdit ? '1' : '0.5';
   newNurseName.style.opacity = canEdit ? '1' : '0.5';
+  addTemplateBtn.style.display = canEdit ? 'block' : 'none';
 
   const nurseList = document.querySelector('.nurse-list');
 
@@ -1823,6 +1850,10 @@ function closeAuthModal() {
 
   document.body.classList.toggle('logged-in', !!currentUser);
 
+  // Rebuild interactive controls when authentication changes.
+  renderNurseList();
+  renderCalendar();
+  renderAllTemplates();
   renderNoticeBoard();
 }
   
@@ -1874,14 +1905,21 @@ if (nurseReminders.length === 0 && data.nurseNotice) {
 
       templateShifts1.length = 0;
       templateShifts2.length = 0;
+      extraTemplateShifts = [];
 
       templateShifts1.push(...(data.templateShifts1 || data.templateShifts || []));
       templateShifts2.push(...(data.templateShifts2 || []));
+      if (Array.isArray(data.extraTemplateShifts)) {
+        extraTemplateShifts = data.extraTemplateShifts
+          .filter(Array.isArray)
+          .map(shifts => shifts.map(shift => ({ ...shift })));
+      }
     } else {
   roster = {};
   nurseReminders = [];
   templateShifts1.length = 0;
   templateShifts2.length = 0;
+  extraTemplateShifts = [];
 }
 
     normalizeNurseRanks();
@@ -1889,8 +1927,7 @@ if (nurseReminders.length === 0 && data.nurseNotice) {
 
     renderNurseList();
 	renderCalendar();
-	renderTemplateDay(templateDay1, templateShifts1, 'Template 1');
-	renderTemplateDay(templateDay2, templateShifts2, 'Template 2');
+	renderAllTemplates();
 	renderNoticeBoard();
 
     if (!hasLoadedRoster) {
@@ -1905,8 +1942,7 @@ if (nurseReminders.length === 0 && data.nurseNotice) {
     roster = roster || {};
     renderNurseList();
 	renderCalendar();
-	renderTemplateDay(templateDay1, templateShifts1, 'Template 1');
-	renderTemplateDay(templateDay2, templateShifts2, 'Template 2');
+	renderAllTemplates();
 	renderNoticeBoard();
 
     showRosterStatus("Roster could not be loaded right now.");
@@ -2165,8 +2201,7 @@ syncShiftColorsWithNurses();
 saveData();
 renderNurseList();
 renderCalendar();
-renderTemplateDay(templateDay1, templateShifts1, 'Template 1');
-renderTemplateDay(templateDay2, templateShifts2, 'Template 2');
+renderAllTemplates();
       });
 
       infoDiv.appendChild(colorBox);
@@ -2190,8 +2225,7 @@ renderTemplateDay(templateDay2, templateShifts2, 'Template 2');
   saveData();
   renderNurseList();
   renderCalendar();
-  renderTemplateDay(templateDay1, templateShifts1, 'Template 1');
-  renderTemplateDay(templateDay2, templateShifts2, 'Template 2');
+  renderAllTemplates();
 }
         } else {
           // Normal click → select nurse
@@ -2238,8 +2272,7 @@ renderTemplateDay(templateDay2, templateShifts2, 'Template 2');
     saveData();
     renderNurseList();
     renderCalendar();
-    renderTemplateDay(templateDay1, templateShifts1, 'Template 1');
-    renderTemplateDay(templateDay2, templateShifts2, 'Template 2');
+    renderAllTemplates();
   }
 
   rankInput.addEventListener('keydown', (e) => {
@@ -2293,8 +2326,7 @@ addNurseBtn.addEventListener('click', () => {
     saveData();
     renderNurseList();
     renderCalendar();
-    renderTemplateDay(templateDay1, templateShifts1, 'Template 1');
-    renderTemplateDay(templateDay2, templateShifts2, 'Template 2');
+    renderAllTemplates();
   }
 });
   
@@ -2683,7 +2715,7 @@ function syncShiftColorsWithNurses() {
     });
   }
 
-  [templateShifts1, templateShifts2].forEach(templateShifts => {
+  [templateShifts1, templateShifts2, ...extraTemplateShifts].forEach(templateShifts => {
     templateShifts.forEach(shift => {
       const nurse = nurses.find(n => n.name === shift.name);
       if (nurse) shift.color = nurse.color;
@@ -2700,6 +2732,7 @@ const templateDay2 = document.getElementById('templateDay2');
 
 let templateShifts1 = [];
 let templateShifts2 = [];
+let extraTemplateShifts = [];
 
 // ---------------- Firestore Template ----------------
 
@@ -2708,12 +2741,64 @@ async function saveTemplate() {
   try {
     await setDoc(doc(db, "nursesRoster", "main"), {
       templateShifts1: templateShifts1.map(s => ({ ...s })),
-      templateShifts2: templateShifts2.map(s => ({ ...s }))
+      templateShifts2: templateShifts2.map(s => ({ ...s })),
+      extraTemplateShifts: extraTemplateShifts.map(shifts =>
+        shifts.map(shift => ({ ...shift }))
+      )
     }, { merge: true });
   } catch (err) {
     console.error("Failed to save template:", err);
   }
 }
+
+function renderAllTemplates() {
+  renderTemplateDay(templateDay1, templateShifts1, 'Template 1');
+  renderTemplateDay(templateDay2, templateShifts2, 'Template 2');
+
+  extraTemplateContainer.innerHTML = '';
+  extraTemplateShifts.forEach((templateShifts, extraIndex) => {
+    const templateNumber = extraIndex + 3;
+    const labelText = `Template ${templateNumber}`;
+
+    const headingRow = document.createElement('div');
+    headingRow.className = 'template-heading-row';
+
+    const heading = document.createElement('h4');
+    heading.textContent = `Template Day ${templateNumber}`;
+    headingRow.appendChild(heading);
+
+    if (canEdit) {
+      const removeBtn = document.createElement('button');
+      removeBtn.type = 'button';
+      removeBtn.className = 'btn remove-template-btn';
+      removeBtn.textContent = 'Remove';
+      removeBtn.addEventListener('click', () => {
+        if (!confirm(`Remove ${labelText}?`)) return;
+        extraTemplateShifts.splice(extraIndex, 1);
+        renderAllTemplates();
+        saveTemplate();
+      });
+      headingRow.appendChild(removeBtn);
+    }
+
+    const templateEl = document.createElement('div');
+    templateEl.id = `templateDay${templateNumber}`;
+    templateEl.className = 'day';
+    templateEl.style.minHeight = '120px';
+
+    extraTemplateContainer.appendChild(headingRow);
+    extraTemplateContainer.appendChild(templateEl);
+    setupTemplateDragDrop(templateEl, templateShifts, labelText);
+    renderTemplateDay(templateEl, templateShifts, labelText);
+  });
+}
+
+addTemplateBtn.addEventListener('click', () => {
+  if (!canEdit) return;
+  extraTemplateShifts.push([]);
+  renderAllTemplates();
+  saveTemplate();
+});
 
 // ---------------- Render Template ----------------
 function renderTemplateDay(templateEl, templateShifts, labelText) {
