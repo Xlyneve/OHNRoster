@@ -879,7 +879,7 @@ body.logged-in .nurse-list {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
 .day-number,
-.day-note,
+.day-note-strip,
 .holiday-badge {
   max-width: 100%;
   box-sizing: border-box;
@@ -1094,14 +1094,38 @@ body.logged-in .nurse-list {
   font-size: 1.1rem;
 }
 
-.day-note {
-  font-size: 0.8em;
-  color: black;
-  background-color: #feffa3;
-  margin-left: 5px;
-  padding: 2px 5px;
-  border-radius: 5px;
+.day-note-strip {
+  display: block;
+  width: 100%;
+  margin: 0 0 6px;
+  padding: 5px 7px;
+  overflow: hidden;
+  box-sizing: border-box;
+
+  color: #333;
+  background: rgba(255, 255, 255, 0.88);
+  border: 1px solid rgba(50, 50, 50, 0.18);
+  border-left: 3px solid #555;
+  border-radius: 6px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.07);
+
+  font-size: 0.72rem;
+  line-height: 1.25;
+  text-align: left;
+  white-space: nowrap;
+  text-overflow: ellipsis;
   user-select: none;
+}
+
+.day-note-strip.editable {
+  cursor: pointer;
+}
+
+.day-note-strip.editable:hover,
+.day-note-strip.editable:focus {
+  border-color: rgba(255, 152, 0, 0.7);
+  border-left-color: #ff9800;
+  outline: none;
 }
 
 .shift {
@@ -2546,8 +2570,17 @@ function renderDayCell(year, month, day) {
   dayNumber.classList.add('day-number');
   dayNumber.innerHTML =
     `${day}` +
-    (roster[key].isHoliday ? ` <span class="holiday-badge">Holiday</span>` : '') +
-    (roster[key].notes ? ` <span class="day-note">${escapeHtml(String(roster[key].notes))}</span>` : '');
+    (roster[key].isHoliday ? ` <span class="holiday-badge">Holiday</span>` : '');
+
+  function editDayNote() {
+    if (!canEdit) return;
+    const note = prompt('Enter notes for this day:', roster[key].notes || '');
+    if (note !== null) {
+      roster[key].notes = note;
+      saveData();
+      renderCalendar();
+    }
+  }
 
   dayNumber.addEventListener('click', (e) => {
     e.stopPropagation();
@@ -2560,12 +2593,7 @@ function renderDayCell(year, month, day) {
       return;
     }
 
-    const note = prompt('Enter notes for this day:', roster[key].notes || '');
-    if (note !== null) {
-      roster[key].notes = note;
-      saveData();
-      renderCalendar();
-    }
+    editDayNote();
   });
 
   const dragHandle = document.createElement('span');
@@ -2590,6 +2618,31 @@ function renderDayCell(year, month, day) {
   header.appendChild(dragHandle);
 
   dayCell.appendChild(header);
+
+  if (roster[key].notes) {
+    const noteStrip = document.createElement('div');
+    noteStrip.className = 'day-note-strip';
+    noteStrip.textContent = `📝 ${roster[key].notes}`;
+    noteStrip.title = roster[key].notes;
+
+    if (canEdit) {
+      noteStrip.classList.add('editable');
+      noteStrip.setAttribute('role', 'button');
+      noteStrip.tabIndex = 0;
+      noteStrip.setAttribute('aria-label', `Edit note for ${date.toLocaleDateString()}`);
+      noteStrip.addEventListener('click', (e) => {
+        e.stopPropagation();
+        editDayNote();
+      });
+      noteStrip.addEventListener('keydown', (e) => {
+        if (e.key !== 'Enter' && e.key !== ' ') return;
+        e.preventDefault();
+        editDayNote();
+      });
+    }
+
+    dayCell.appendChild(noteStrip);
+  }
 
   // Tap/click fallback for touch devices where HTML drag-and-drop is unavailable.
   if (canEdit) {
