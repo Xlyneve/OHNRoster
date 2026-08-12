@@ -104,35 +104,47 @@ body::after {
 
 .notice-toggle {
   width: 100%;
-  border: none;
-  border-radius: 999px;
+  border-radius: 10px;
   padding: 10px 12px;
   cursor: pointer;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  text-align: left;
 
   font-size: 0.95rem;
   font-weight: 800;
   letter-spacing: 0.2px;
 
-  background: #ff9800;
+  background: #2b2b2b;
   color: white;
 
-  border: 1px solid rgba(255, 255, 255, 0.65);
+  border: 1px solid rgba(0, 0, 0, 0.22);
 
-  box-shadow:
-    0 6px 18px rgba(0,0,0,0.10),
-    0 0 14px rgba(255,255,255,0.75),
-    inset 0 0 10px rgba(255,255,255,0.28);
+  box-shadow: 0 3px 9px rgba(0,0,0,0.18);
+}
+
+.notice-toggle::after {
+  content: "▾";
+  flex: 0 0 auto;
+  font-size: 0.8rem;
+  transition: transform 0.2s ease;
+}
+
+.notice-board:not(.open) .notice-toggle::after {
+  transform: rotate(-90deg);
 }
 
 .notice-toggle:hover {
-  background: #e68900;
-
-  box-shadow:
-    0 7px 20px rgba(0,0,0,0.12),
-    0 0 18px rgba(255,255,255,0.9),
-    inset 0 0 12px rgba(255,255,255,0.34);
+  background: #111;
+  box-shadow: 0 4px 11px rgba(0,0,0,0.22);
 }
 
+.notice-board:not(.open) .notice-content {
+  display: none;
+}
 
 .notice-content {
   margin-top: 10px;
@@ -167,6 +179,36 @@ body::after {
   box-shadow:
     0 4px 12px rgba(0,0,0,0.06),
     inset 0 0 0 1px rgba(255,255,255,0.42);
+
+  animation: reminderPulse 2.8s ease-in-out infinite;
+}
+
+.notice-card:nth-child(2n) { animation-delay: 0.45s; }
+.notice-card:nth-child(3n) { animation-delay: 0.9s; }
+
+@keyframes reminderPulse {
+  0%, 100% {
+    box-shadow:
+      0 4px 12px rgba(0,0,0,0.06),
+      inset 0 0 0 1px rgba(255,255,255,0.42);
+  }
+  50% {
+    box-shadow:
+      0 5px 16px rgba(255, 152, 0, 0.2),
+      0 0 0 2px rgba(255, 152, 0, 0.16),
+      inset 0 0 0 1px rgba(255,255,255,0.56);
+  }
+}
+
+.notice-card.empty,
+.notice-card:has(.notice-card-text.editing) {
+  animation: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .notice-card {
+    animation: none;
+  }
 }
 
 .notice-card::before {
