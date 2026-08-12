@@ -431,7 +431,13 @@ function firstAvailableVisitIndex(eligibleDate, visitDates, visits, limit) {
 
   function setDefaultDate() {
     const el = document.getElementById('planStartDate');
-    if (!el.value) el.value = new Date().toISOString().slice(0, 10);
+    if (!el.value) {
+      const today = new Date();
+      const year = today.getFullYear();
+      const month = String(today.getMonth() + 1).padStart(2, '0');
+      const day = String(today.getDate()).padStart(2, '0');
+      el.value = `${year}-${month}-${day}`;
+    }
   }
 
   function firstVisitDate() {

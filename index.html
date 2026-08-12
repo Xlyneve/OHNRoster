@@ -1503,7 +1503,7 @@ footer {
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
   import {
-    getFirestore, doc, setDoc, getDoc
+    getFirestore, doc, setDoc, onSnapshot
   } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
   import {
     getAuth,
@@ -1558,6 +1558,8 @@ const noticeInput = document.getElementById('noticeInput');
 const addNoticeBtn = document.getElementById('addNoticeBtn');
 
 let nurseReminders = [];
+let unsubscribeRoster = null;
+let hasLoadedRoster = false;
 
   let currentUser = null;
   let canEdit = false;  // controls if editing is allowed
@@ -1597,7 +1599,7 @@ monthYear.addEventListener('click', () => {
 jumpDatePicker.addEventListener('change', (e) => {
   if (!e.target.value) return;
 
-  const pickedDate = new Date(e.target.value);
+  const pickedDate = new Date(`${e.target.value}T00:00:00`);
   if (isNaN(pickedDate.getTime())) return;
 
   currentDate = pickedDate;
@@ -1640,10 +1642,15 @@ closeAuthModal();
   });
 
   logoutBtn.addEventListener('click', async () => {
-    await signOut(auth);
-currentUser = null;
-updateUIOnAuth();
-closeAuthModal();
+    try {
+      await signOut(auth);
+      currentUser = null;
+      updateUIOnAuth();
+      closeAuthModal();
+    } catch (error) {
+      console.error("Logout failed:", error);
+      alert("Logout failed. Please try again.");
+    }
   });
 
   onAuthStateChanged(auth, (user) => {
@@ -1717,12 +1724,17 @@ function hideRosterStatus() {
   rosterStatus.classList.remove('show');
 }
   /** ---------- Firebase Data ---------- **/
- async function loadData() {
-  try {
-    showRosterStatus("Loading roster...");
+ function loadData() {
+  showRosterStatus("Loading roster...");
 
-    const docRef = doc(db, "nursesRoster", "main");
-    const docSnap = await getDoc(docRef);
+  const docRef = doc(db, "nursesRoster", "main");
+  if (unsubscribeRoster) unsubscribeRoster();
+
+  unsubscribeRoster = onSnapshot(docRef, (docSnap) => {
+    if (docSnap.metadata.fromCache && !docSnap.exists()) {
+      showRosterStatus("Offline. Waiting for the roster connection...");
+      return;
+    }
 
     if (docSnap.exists()) {
       const data = docSnap.data();
@@ -1767,10 +1779,13 @@ if (nurseReminders.length === 0 && data.nurseNotice) {
 	renderTemplateDay(templateDay2, templateShifts2, 'Template 2');
 	renderNoticeBoard();
 
-	scrollToTodayWeek();
+    if (!hasLoadedRoster) {
+      scrollToTodayWeek();
+      hasLoadedRoster = true;
+    }
 
     hideRosterStatus();
-  } catch (error) {
+  }, (error) => {
     console.error("Failed to load data from Firestore:", error);
 
     roster = roster || {};
@@ -1780,10 +1795,8 @@ if (nurseReminders.length === 0 && data.nurseNotice) {
 	renderTemplateDay(templateDay2, templateShifts2, 'Template 2');
 	renderNoticeBoard();
 
-	scrollToTodayWeek();
-
     showRosterStatus("Roster could not be loaded right now.");
-  }
+  });
 }
 function normalizeNurseRanks() {
   nurses.forEach((nurse, index) => {
@@ -2186,7 +2199,7 @@ addNurseBtn.addEventListener('click', () => {
   shiftDiv.style.color = brightness > 150 ? "#000" : "#fff";
 
   const leaveDisplay = getLeaveDisplay(shift);
-shiftDiv.innerHTML = `${shift.name}: ${leaveDisplay.text}`;
+shiftDiv.innerHTML = `${escapeHtml(String(shift.name || ''))}: ${escapeHtml(String(leaveDisplay.text))}`;
 
 if (leaveDisplay.isLeave) {
   shiftDiv.classList.add('leave');
@@ -2300,7 +2313,7 @@ function renderDayCell(year, month, day) {
   dayNumber.innerHTML =
     `${day}` +
     (roster[key].isHoliday ? ` <span class="holiday-badge">Holiday</span>` : '') +
-    (roster[key].notes ? ` <span class="day-note">${roster[key].notes}</span>` : '');
+    (roster[key].notes ? ` <span class="day-note">${escapeHtml(String(roster[key].notes))}</span>` : '');
 
   dayNumber.addEventListener('click', (e) => {
     e.stopPropagation();
@@ -2343,6 +2356,30 @@ function renderDayCell(year, month, day) {
   header.appendChild(dragHandle);
 
   dayCell.appendChild(header);
+
+  // Tap/click fallback for touch devices where HTML drag-and-drop is unavailable.
+  if (canEdit) {
+    dayCell.addEventListener('click', (e) => {
+      if (e.target.closest('.day-number, .shift') || e.target === dragHandle) return;
+      if (selectedNurseIndex === null || !nurses[selectedNurseIndex]) {
+        alert('Please select a nurse first!');
+        return;
+      }
+
+      const time = prompt('Enter shift time (e.g., 7AM-3PM):');
+      if (!time || !time.trim()) return;
+
+      const nurse = nurses[selectedNurseIndex];
+      roster[key].shifts.push({
+        name: nurse.name,
+        color: nurse.color,
+        time: time.trim(),
+        leaveType: ''
+      });
+      saveData();
+      renderCalendar();
+    });
+  }
 
   if (canEdit) {
     dayCell.addEventListener('dragover', (e) => {
@@ -2409,23 +2446,15 @@ function renderDayCell(year, month, day) {
     });
   }
 
-  const sortedShifts = [...roster[key].shifts].sort((a, b) => {
-    const indexA = getNurseHierarchyIndex(a.name);
-    const indexB = getNurseHierarchyIndex(b.name);
+  const sortedShifts = roster[key].shifts.map((shift, originalIndex) => ({ shift, originalIndex })).sort((a, b) => {
+    const indexA = getNurseHierarchyIndex(a.shift.name);
+    const indexB = getNurseHierarchyIndex(b.shift.name);
 
     if (indexA !== indexB) return indexA - indexB;
-    return a.name.localeCompare(b.name);
+    return a.shift.name.localeCompare(b.shift.name);
   });
 
-  sortedShifts.forEach((shift) => {
-    const originalIndex = roster[key].shifts.findIndex(
-      s =>
-        s.name === shift.name &&
-        s.time === shift.time &&
-        s.color === shift.color &&
-        (s.leaveType || '') === (shift.leaveType || '')
-    );
-
+  sortedShifts.forEach(({ shift, originalIndex }) => {
     dayCell.appendChild(createShiftElement(shift, key, originalIndex));
   });
 
@@ -2580,15 +2609,15 @@ function renderTemplateDay(templateEl, templateShifts, labelText) {
   templateEl.draggable = canEdit;
 
   // allow dragging the ENTIRE template day
-  if (canEdit) {
-    templateEl.addEventListener('dragstart', (e) => {
+  templateEl.ondragstart = canEdit
+    ? (e) => {
       e.stopPropagation();
       e.dataTransfer.setData(
         'text/day-shifts',
         JSON.stringify(templateShifts.map(s => ({ ...s })))
       );
-    });
-  }
+    }
+    : null;
 
   // ---------- Header ----------
   const header = document.createElement('div');
@@ -2620,30 +2649,23 @@ function renderTemplateDay(templateEl, templateShifts, labelText) {
   templateEl.appendChild(header);
 
   // ---------- Sort shifts by nurse rank ----------
-  const sortedTemplateShifts = [...templateShifts].sort((a, b) => {
-  const indexA = getNurseHierarchyIndex(a.name);
-  const indexB = getNurseHierarchyIndex(b.name);
+  const sortedTemplateShifts = templateShifts.map((shift, originalIndex) => ({ shift, originalIndex })).sort((a, b) => {
+  const indexA = getNurseHierarchyIndex(a.shift.name);
+  const indexB = getNurseHierarchyIndex(b.shift.name);
 
   if (indexA !== indexB) return indexA - indexB;
-  return a.name.localeCompare(b.name);
+  return a.shift.name.localeCompare(b.shift.name);
 });
 
   // ---------- Shifts ----------
-  sortedTemplateShifts.forEach((shift) => {
-    const idx = templateShifts.findIndex(
-  s =>
-    s.name === shift.name &&
-    s.time === shift.time &&
-    s.color === shift.color &&
-    (s.leaveType || '') === (shift.leaveType || '')
-);
+  sortedTemplateShifts.forEach(({ shift, originalIndex: idx }) => {
 
     const shiftDiv = document.createElement('div');
     shiftDiv.className = 'shift';
     shiftDiv.style.backgroundColor = shift.color;
     
 	const leaveDisplay = getLeaveDisplay(shift);
-shiftDiv.innerHTML = `${shift.name}: ${leaveDisplay.text}`;
+shiftDiv.innerHTML = `${escapeHtml(String(shift.name || ''))}: ${escapeHtml(String(leaveDisplay.text))}`;
 
 if (leaveDisplay.isLeave) {
   shiftDiv.classList.add('leave');

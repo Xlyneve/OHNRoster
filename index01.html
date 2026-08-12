@@ -496,16 +496,14 @@ body.view-mode {
 </div>
 
 </div>
-<div class="calendar-scroll-wrapper">
-  <div class="calendar-grid" id="calendarGrid"></div>
-</div>
+</div> <!-- /.container -->
 
 <footer>CEP/C 2025</footer>
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
   import {
-    getFirestore, doc, setDoc, getDoc
+    getFirestore, doc, setDoc, onSnapshot
   } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
   import {
     getAuth,
@@ -634,10 +632,11 @@ body.view-mode {
 
 
   /** ---------- Firebase Data ---------- **/
-  async function loadData() {
-    try {
-      const docRef = doc(db, "nursesRoster", "main");
-      const docSnap = await getDoc(docRef);
+  function loadData() {
+    const docRef = doc(db, "nursesRoster", "main");
+    onSnapshot(docRef, (docSnap) => {
+      if (docSnap.metadata.fromCache && !docSnap.exists()) return;
+
       if (docSnap.exists()) {
         const data = docSnap.data();
         roster = data.roster || {};
@@ -645,10 +644,10 @@ body.view-mode {
       }
       renderNurseList();
       renderCalendar();
-    } catch (error) {
+    }, (error) => {
       console.error("Failed to load data from Firestore:", error);
       alert("Failed to load data from Firestore. Check console.");
-    }
+    });
   }
 
   async function saveData() {
@@ -657,7 +656,7 @@ body.view-mode {
       return;
     }
     try {
-      await setDoc(doc(db, "nursesRoster", "main"), { roster, nurses });
+      await setDoc(doc(db, "nursesRoster", "main"), { roster, nurses }, { merge: true });
     } catch (error) {
       console.error("Error saving data:", error);
       alert("Failed to save data. Check console.");
@@ -813,7 +812,13 @@ body.view-mode {
 
     const dayNumber = document.createElement('div');
     dayNumber.classList.add('day-number');
-    dayNumber.innerHTML = day + (roster[key].notes ? `<span class="day-note">${roster[key].notes}</span>` : '');
+    dayNumber.textContent = day;
+    if (roster[key].notes) {
+      const noteSpan = document.createElement('span');
+      noteSpan.className = 'day-note';
+      noteSpan.textContent = roster[key].notes;
+      dayNumber.appendChild(noteSpan);
+    }
     dayNumber.addEventListener('click', (e) => {
       e.stopPropagation();
       if (!canEdit) return;
