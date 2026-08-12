@@ -590,6 +590,15 @@ body::after {
   overflow-x: hidden;
 }
 
+.calendar-top-sticky {
+  position: sticky;
+  top: 0;
+  z-index: 80;
+  padding: 6px 0;
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 5px 10px rgba(0,0,0,0.08);
+}
+
 .nurse-list.nurse-panel-collapsed .nurse-panel-header h3,
 .nurse-list.nurse-panel-collapsed .nurse-panel-content {
   display: none;
@@ -832,7 +841,7 @@ body.logged-in .nurse-list {
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
 
   justify-self: center;
-  overflow-x: hidden;
+  overflow-x: visible;
 }
 
 /* Calendar header + buttons */
