@@ -657,11 +657,45 @@ body.logged-in .nurse-list {
 }
 .color-box:hover { opacity: 1; border-color: #666; }
 
-.color-picker {
+.color-editor {
   position: absolute;
-  left: 70px;
-  top: 1px;
+  left: 22px;
+  top: 24px;
+  z-index: 20;
   display: none;
+  align-items: center;
+  gap: 5px;
+  width: 210px;
+  padding: 7px;
+  box-sizing: border-box;
+  border: 1px solid rgba(0, 0, 0, 0.14);
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.16);
+}
+
+.color-picker {
+  flex: 0 0 34px;
+  width: 34px;
+  height: 30px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.color-text-input {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 5px 6px;
+  border: 1px solid #bbb;
+  border-radius: 6px;
+  font-size: 0.75rem;
+}
+
+.color-apply-btn {
+  flex: 0 0 auto;
+  padding: 6px 7px;
+  font-size: 0.72rem;
 }
 
 .shift.leave {
@@ -1531,6 +1565,10 @@ footer {
       </div>
       <div class="nurse-panel-content">
       <div id="nurseContainer"></div>
+      <div class="add-nurse">
+        <input type="text" id="newNurseName" placeholder="Add Nurse">
+        <button id="addNurseBtn" class="btn">Add</button>
+      </div>
 <h4>Template Day 1</h4>
 <div id="templateDay1" class="day" style="min-height:120px;"></div>
 
@@ -1538,11 +1576,6 @@ footer {
 <div id="templateDay2" class="day" style="min-height:120px;"></div>
 <div id="extraTemplateContainer"></div>
 <button id="addTemplateBtn" class="btn add-template-btn" type="button">+ Add Template</button>
-
-      <div class="add-nurse">
-        <input type="text" id="newNurseName" placeholder="Add Nurse">
-        <button id="addNurseBtn" class="btn">Add</button>
-      </div>
 
       <div class="nurse-note">
         <p>💡 <b>Tips:</b></p>
@@ -2157,6 +2190,30 @@ function getLeaveDisplay(shift) {
   };
 }
 
+function normalizeColor(value) {
+  const raw = String(value || '').trim();
+  const hexMatch = raw.match(/^#([0-9a-f]{3}|[0-9a-f]{6})$/i);
+
+  if (hexMatch) {
+    let hex = hexMatch[1].toLowerCase();
+    if (hex.length === 3) {
+      hex = hex.split('').map(character => character + character).join('');
+    }
+    return `#${hex}`;
+  }
+
+  const rgbMatch =
+    raw.match(/^rgb\s*\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\s*\)$/i) ||
+    raw.match(/^(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})$/);
+
+  if (!rgbMatch) return null;
+
+  const channels = rgbMatch.slice(1).map(Number);
+  if (channels.some(channel => channel < 0 || channel > 255)) return null;
+
+  return `#${channels.map(channel => channel.toString(16).padStart(2, '0')).join('')}`;
+}
+
   /** ---------- Nurse List ---------- **/
   function renderNurseList() {
     nurseContainer.innerHTML = '';
@@ -2177,31 +2234,62 @@ function getLeaveDisplay(shift) {
 
       const colorPicker = document.createElement('input');
       colorPicker.type = 'color';
-      colorPicker.value = nurse.color;
+      colorPicker.value = normalizeColor(nurse.color) || '#ff9800';
       colorPicker.classList.add('color-picker');
-      colorPicker.style.display = 'none'; 
+
+      const colorTextInput = document.createElement('input');
+      colorTextInput.type = 'text';
+      colorTextInput.className = 'color-text-input';
+      colorTextInput.value = normalizeColor(nurse.color) || nurse.color || '';
+      colorTextInput.placeholder = '#ff9800 or rgb(255,152,0)';
+      colorTextInput.setAttribute('aria-label', `Colour for ${nurse.name}`);
+
+      const colorApplyBtn = document.createElement('button');
+      colorApplyBtn.type = 'button';
+      colorApplyBtn.className = 'btn color-apply-btn';
+      colorApplyBtn.textContent = 'Apply';
+
+      const colorEditor = document.createElement('div');
+      colorEditor.className = 'color-editor';
+      colorEditor.appendChild(colorPicker);
+      colorEditor.appendChild(colorTextInput);
+      colorEditor.appendChild(colorApplyBtn);
+
+      function applyNurseColor(value) {
+        const normalized = normalizeColor(value);
+        if (!normalized) {
+          alert('Enter a hex colour such as #ff9800 or RGB such as rgb(255, 152, 0).');
+          colorTextInput.focus();
+          return;
+        }
+
+        nurse.color = normalized;
+        syncShiftColorsWithNurses();
+        saveData();
+        renderNurseList();
+        renderCalendar();
+        renderAllTemplates();
+      }
 
       colorBox.addEventListener('click', (e) => {
         e.stopPropagation();
         if (!canEdit) return;
-        document.querySelectorAll('.color-picker').forEach(p => {
-          if (p !== colorPicker) p.style.display = 'none';
+        document.querySelectorAll('.color-editor').forEach(editor => {
+          if (editor !== colorEditor) editor.style.display = 'none';
         });
-        colorPicker.style.display = colorPicker.style.display === 'block' ? 'none' : 'block';
+        colorEditor.style.display = colorEditor.style.display === 'flex' ? 'none' : 'flex';
+        if (colorEditor.style.display === 'flex') colorTextInput.focus();
       });
 
-      colorPicker.addEventListener('mousedown', e => e.stopPropagation());
-      colorPicker.addEventListener('click', e => e.stopPropagation());
-      colorPicker.addEventListener('dragstart', e => e.stopPropagation());
+      ['pointerdown', 'mousedown', 'click', 'dragstart'].forEach(eventName => {
+        colorEditor.addEventListener(eventName, e => e.stopPropagation());
+      });
 
-      colorPicker.addEventListener('input', (e) => {
-        if (!canEdit) return;
-        nurse.color = e.target.value;
-syncShiftColorsWithNurses();
-saveData();
-renderNurseList();
-renderCalendar();
-renderAllTemplates();
+      colorPicker.addEventListener('change', (e) => applyNurseColor(e.target.value));
+      colorApplyBtn.addEventListener('click', () => applyNurseColor(colorTextInput.value));
+      colorTextInput.addEventListener('keydown', (e) => {
+        e.stopPropagation();
+        if (e.key === 'Enter') applyNurseColor(colorTextInput.value);
       });
 
       infoDiv.appendChild(colorBox);
@@ -2235,7 +2323,7 @@ renderAllTemplates();
       });
 
       div.appendChild(infoDiv);
-      div.appendChild(colorPicker);
+      div.appendChild(colorEditor);
 	  
 	 if (canEdit) {
   const rankInput = document.createElement('input');
@@ -2298,9 +2386,9 @@ renderAllTemplates();
 
   /** ---------- Global Listener to Close Color Pickers ---------- **/
   document.addEventListener('pointerdown', (e) => {
-    const isInside = e.target.closest('.color-picker, .color-box');
+    const isInside = e.target.closest('.color-editor, .color-box');
     if (!isInside) {
-      document.querySelectorAll('.color-picker').forEach(p => p.style.display = 'none');
+      document.querySelectorAll('.color-editor').forEach(editor => editor.style.display = 'none');
     }
   });
 
