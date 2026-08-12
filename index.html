@@ -2809,11 +2809,29 @@ function scrollToTodayWeek() {
     const todayCell = calendarGrid.querySelector('.today');
 
     if (todayCell) {
-      todayCell.scrollIntoView({
-        behavior: 'smooth',
-        block: 'center',
-        inline: 'nearest'
-      });
+      if (window.innerWidth <= 900 && gridScroll) {
+        const todayRect = todayCell.getBoundingClientRect();
+        const targetTop = window.scrollY + todayRect.top
+          - ((window.innerHeight - todayRect.height) / 2);
+        const targetLeft = Math.max(
+          0,
+          todayCell.offsetLeft - ((gridScroll.clientWidth - todayCell.offsetWidth) / 2)
+        );
+
+        window.scrollTo({ top: targetTop, behavior: 'smooth' });
+        syncingScroll = true;
+        gridScroll.scrollLeft = targetLeft;
+        if (weekdaysScroll) weekdaysScroll.scrollLeft = targetLeft;
+        requestAnimationFrame(() => {
+          syncingScroll = false;
+        });
+      } else {
+        todayCell.scrollIntoView({
+          behavior: 'smooth',
+          block: 'center',
+          inline: 'nearest'
+        });
+      }
     }
   }, 150);
 }
