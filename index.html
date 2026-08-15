@@ -2189,6 +2189,7 @@ if (nurseReminders.length === 0 && data.nurseNotice) {
       templateShifts2.push(...(data.templateShifts2 || []));
       if (Array.isArray(data.extraTemplateShifts)) {
         extraTemplateShifts = data.extraTemplateShifts
+          .map(template => Array.isArray(template) ? template : template?.shifts)
           .filter(Array.isArray)
           .map(shifts => shifts.map(shift => ({ ...shift })));
       }
@@ -3117,16 +3118,21 @@ let extraTemplateShifts = [];
 
 
 async function saveTemplate() {
+  if (!canEdit) return;
+
   try {
     await setDoc(doc(db, "nursesRoster", "main"), {
       templateShifts1: templateShifts1.map(s => ({ ...s })),
       templateShifts2: templateShifts2.map(s => ({ ...s })),
-      extraTemplateShifts: extraTemplateShifts.map(shifts =>
-        shifts.map(shift => ({ ...shift }))
-      )
+      // Firestore does not support arrays nested directly inside arrays.
+      // Wrap each added template in an object so empty templates persist too.
+      extraTemplateShifts: extraTemplateShifts.map(shifts => ({
+        shifts: shifts.map(shift => ({ ...shift }))
+      }))
     }, { merge: true });
   } catch (err) {
     console.error("Failed to save template:", err);
+    alert("Failed to save template. Check your connection and try again.");
   }
 }
 
