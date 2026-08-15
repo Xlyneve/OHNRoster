@@ -648,22 +648,19 @@ body::after {
 }
 
 .btn.template-action-btn {
-  flex: 0 0 24px;
-  width: 24px;
-  height: 24px;
+  flex: 0 0 20px;
+  width: 20px;
+  height: 20px;
   padding: 0;
-  border: 1px solid rgba(0, 0, 0, 0.14);
-  border-radius: 7px;
-  background: #fff3a6;
-  color: #6b5200;
-  box-shadow: none;
-  font-size: 0.88rem;
-  line-height: 1;
+  border: 1px solid #e2bd2f;
+  border-radius: 50%;
+  background: #ffe66d;
+  box-shadow: 0 0 7px rgba(255, 214, 45, 0.72);
 }
 
 .btn.template-action-btn:hover {
-  background: #ffe66d;
-  box-shadow: none;
+  background: #ffd82e;
+  box-shadow: 0 0 10px rgba(255, 200, 0, 0.9);
 }
 
 .template-actions-menu {
@@ -3237,7 +3234,6 @@ function renderTemplateHeading(headingRow, templateIndex, onRemove = null) {
   const actionBtn = document.createElement('button');
   actionBtn.type = 'button';
   actionBtn.className = 'btn template-action-btn';
-  actionBtn.textContent = '💡';
   actionBtn.title = 'Template options';
   actionBtn.setAttribute('aria-label', `Options for ${getTemplateLabel(templateIndex)}`);
 
