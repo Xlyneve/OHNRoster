@@ -642,6 +642,16 @@ body::after {
   margin: 0;
 }
 
+.template-name-input {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 5px 7px;
+  border: 1px solid rgba(0, 0, 0, 0.18);
+  border-radius: 7px;
+  font-size: 0.78rem;
+  background: rgba(255, 255, 255, 0.82);
+}
+
 .remove-template-btn {
   padding: 4px 8px;
   font-size: 0.72rem;
@@ -1814,10 +1824,16 @@ footer {
         <input type="text" id="newNurseName" placeholder="Add Nurse">
         <button id="addNurseBtn" class="btn">Add</button>
       </div>
-<h4>Template Day 1</h4>
+<div class="template-heading-row">
+  <h4>Template Day 1</h4>
+  <input id="templateName1" class="template-name-input" type="text" placeholder="Add template name" aria-label="Name for Template 1">
+</div>
 <div id="templateDay1" class="day" style="min-height:120px;"></div>
 
-<h4 style="margin-top:12px;">Template Day 2</h4>
+<div class="template-heading-row">
+  <h4>Template Day 2</h4>
+  <input id="templateName2" class="template-name-input" type="text" placeholder="Add template name" aria-label="Name for Template 2">
+</div>
 <div id="templateDay2" class="day" style="min-height:120px;"></div>
 <div id="extraTemplateContainer"></div>
 <button id="addTemplateBtn" class="btn add-template-btn" type="button">+ Add Template</button>
@@ -1936,6 +1952,8 @@ const closeAuthModalBtn = document.getElementById('closeAuthModalBtn');
   const addNurseBtn = document.getElementById('addNurseBtn');
   const addTemplateBtn = document.getElementById('addTemplateBtn');
   const extraTemplateContainer = document.getElementById('extraTemplateContainer');
+  const templateName1 = document.getElementById('templateName1');
+  const templateName2 = document.getElementById('templateName2');
   const nursePanelToggle = document.getElementById('nursePanelToggle');
   const weekdaysScroll = document.getElementById('weekdaysScroll');
 const gridScroll = document.getElementById('gridScroll');
@@ -2184,6 +2202,9 @@ if (nurseReminders.length === 0 && data.nurseNotice) {
       templateShifts1.length = 0;
       templateShifts2.length = 0;
       extraTemplateShifts = [];
+      templateNames = Array.isArray(data.templateNames)
+        ? data.templateNames.map(name => String(name || ''))
+        : [];
 
       templateShifts1.push(...(data.templateShifts1 || data.templateShifts || []));
       templateShifts2.push(...(data.templateShifts2 || []));
@@ -2199,6 +2220,7 @@ if (nurseReminders.length === 0 && data.nurseNotice) {
   templateShifts1.length = 0;
   templateShifts2.length = 0;
   extraTemplateShifts = [];
+  templateNames = [];
 }
 
     normalizeNurseRanks();
@@ -3113,6 +3135,7 @@ const templateDay2 = document.getElementById('templateDay2');
 let templateShifts1 = [];
 let templateShifts2 = [];
 let extraTemplateShifts = [];
+let templateNames = [];
 
 // ---------------- Firestore Template ----------------
 
@@ -3124,6 +3147,7 @@ async function saveTemplate() {
     await setDoc(doc(db, "nursesRoster", "main"), {
       templateShifts1: templateShifts1.map(s => ({ ...s })),
       templateShifts2: templateShifts2.map(s => ({ ...s })),
+      templateNames: templateNames.map(name => String(name || '').trim()),
       // Firestore does not support arrays nested directly inside arrays.
       // Wrap each added template in an object so empty templates persist too.
       extraTemplateShifts: extraTemplateShifts.map(shifts => ({
@@ -3136,14 +3160,37 @@ async function saveTemplate() {
   }
 }
 
+function getTemplateLabel(templateIndex) {
+  const templateNumber = templateIndex + 1;
+  const name = String(templateNames[templateIndex] || '').trim();
+  return name ? `Template ${templateNumber}: ${name}` : `Template ${templateNumber}`;
+}
+
+function updateTemplateName(templateIndex, value) {
+  if (!canEdit) return;
+  templateNames[templateIndex] = value.trim();
+  renderAllTemplates();
+  saveTemplate();
+}
+
 function renderAllTemplates() {
-  renderTemplateDay(templateDay1, templateShifts1, 'Template 1');
-  renderTemplateDay(templateDay2, templateShifts2, 'Template 2');
+  const templateCount = 2 + extraTemplateShifts.length;
+  while (templateNames.length < templateCount) templateNames.push('');
+  if (templateNames.length > templateCount) templateNames.length = templateCount;
+
+  templateName1.value = templateNames[0] || '';
+  templateName2.value = templateNames[1] || '';
+  templateName1.disabled = !canEdit;
+  templateName2.disabled = !canEdit;
+
+  renderTemplateDay(templateDay1, templateShifts1, getTemplateLabel(0));
+  renderTemplateDay(templateDay2, templateShifts2, getTemplateLabel(1));
 
   extraTemplateContainer.innerHTML = '';
   extraTemplateShifts.forEach((templateShifts, extraIndex) => {
     const templateNumber = extraIndex + 3;
-    const labelText = `Template ${templateNumber}`;
+    const templateIndex = extraIndex + 2;
+    const labelText = getTemplateLabel(templateIndex);
 
     const headingRow = document.createElement('div');
     headingRow.className = 'template-heading-row';
@@ -3151,6 +3198,18 @@ function renderAllTemplates() {
     const heading = document.createElement('h4');
     heading.textContent = `Template Day ${templateNumber}`;
     headingRow.appendChild(heading);
+
+    const nameInput = document.createElement('input');
+    nameInput.type = 'text';
+    nameInput.className = 'template-name-input';
+    nameInput.placeholder = 'Add template name';
+    nameInput.value = templateNames[templateIndex] || '';
+    nameInput.disabled = !canEdit;
+    nameInput.setAttribute('aria-label', `Name for Template ${templateNumber}`);
+    nameInput.addEventListener('change', () => {
+      updateTemplateName(templateIndex, nameInput.value);
+    });
+    headingRow.appendChild(nameInput);
 
     if (canEdit) {
       const removeBtn = document.createElement('button');
@@ -3160,6 +3219,7 @@ function renderAllTemplates() {
       removeBtn.addEventListener('click', () => {
         if (!confirm(`Remove ${labelText}?`)) return;
         extraTemplateShifts.splice(extraIndex, 1);
+        templateNames.splice(templateIndex, 1);
         renderAllTemplates();
         saveTemplate();
       });
@@ -3181,9 +3241,13 @@ function renderAllTemplates() {
 addTemplateBtn.addEventListener('click', () => {
   if (!canEdit) return;
   extraTemplateShifts.push([]);
+  templateNames.push('');
   renderAllTemplates();
   saveTemplate();
 });
+
+templateName1.addEventListener('change', () => updateTemplateName(0, templateName1.value));
+templateName2.addEventListener('change', () => updateTemplateName(1, templateName2.value));
 
 // ---------------- Render Template ----------------
 function renderTemplateDay(templateEl, templateShifts, labelText) {
