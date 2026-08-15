@@ -649,12 +649,35 @@ body::after {
   border: 1px solid rgba(0, 0, 0, 0.18);
   border-radius: 7px;
   font-size: 0.78rem;
+  color: #000;
+  -webkit-text-fill-color: #000;
   background: rgba(255, 255, 255, 0.82);
 }
 
-.remove-template-btn {
-  padding: 4px 8px;
-  font-size: 0.72rem;
+.template-name-input:disabled {
+  color: #000;
+  -webkit-text-fill-color: #000;
+  opacity: 1;
+}
+
+.btn.remove-template-btn {
+  flex: 0 0 24px;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 1px solid rgba(0, 0, 0, 0.14);
+  border-radius: 7px;
+  background: rgba(255, 255, 255, 0.72);
+  color: #555;
+  box-shadow: none;
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.btn.remove-template-btn:hover {
+  background: rgba(255, 255, 255, 0.96);
+  color: #111;
+  box-shadow: none;
 }
 
 .add-template-btn {
@@ -1825,13 +1848,13 @@ footer {
         <button id="addNurseBtn" class="btn">Add</button>
       </div>
 <div class="template-heading-row">
-  <h4>Template Day 1</h4>
+  <h4 id="templateHeading1">Template Day 1</h4>
   <input id="templateName1" class="template-name-input" type="text" placeholder="Add template name" aria-label="Name for Template 1">
 </div>
 <div id="templateDay1" class="day" style="min-height:120px;"></div>
 
 <div class="template-heading-row">
-  <h4>Template Day 2</h4>
+  <h4 id="templateHeading2">Template Day 2</h4>
   <input id="templateName2" class="template-name-input" type="text" placeholder="Add template name" aria-label="Name for Template 2">
 </div>
 <div id="templateDay2" class="day" style="min-height:120px;"></div>
@@ -1954,6 +1977,8 @@ const closeAuthModalBtn = document.getElementById('closeAuthModalBtn');
   const extraTemplateContainer = document.getElementById('extraTemplateContainer');
   const templateName1 = document.getElementById('templateName1');
   const templateName2 = document.getElementById('templateName2');
+  const templateHeading1 = document.getElementById('templateHeading1');
+  const templateHeading2 = document.getElementById('templateHeading2');
   const nursePanelToggle = document.getElementById('nursePanelToggle');
   const weekdaysScroll = document.getElementById('weekdaysScroll');
 const gridScroll = document.getElementById('gridScroll');
@@ -3166,6 +3191,12 @@ function getTemplateLabel(templateIndex) {
   return name ? `Template ${templateNumber}: ${name}` : `Template ${templateNumber}`;
 }
 
+function getTemplateHeading(templateIndex) {
+  const templateNumber = templateIndex + 1;
+  const name = String(templateNames[templateIndex] || '').trim();
+  return name ? `Template Day ${templateNumber} — ${name}` : `Template Day ${templateNumber}`;
+}
+
 function updateTemplateName(templateIndex, value) {
   if (!canEdit) return;
   templateNames[templateIndex] = value.trim();
@@ -3182,6 +3213,8 @@ function renderAllTemplates() {
   templateName2.value = templateNames[1] || '';
   templateName1.disabled = !canEdit;
   templateName2.disabled = !canEdit;
+  templateHeading1.textContent = getTemplateHeading(0);
+  templateHeading2.textContent = getTemplateHeading(1);
 
   renderTemplateDay(templateDay1, templateShifts1, getTemplateLabel(0));
   renderTemplateDay(templateDay2, templateShifts2, getTemplateLabel(1));
@@ -3196,7 +3229,7 @@ function renderAllTemplates() {
     headingRow.className = 'template-heading-row';
 
     const heading = document.createElement('h4');
-    heading.textContent = `Template Day ${templateNumber}`;
+    heading.textContent = getTemplateHeading(templateIndex);
     headingRow.appendChild(heading);
 
     const nameInput = document.createElement('input');
@@ -3215,7 +3248,9 @@ function renderAllTemplates() {
       const removeBtn = document.createElement('button');
       removeBtn.type = 'button';
       removeBtn.className = 'btn remove-template-btn';
-      removeBtn.textContent = 'Remove';
+      removeBtn.textContent = '×';
+      removeBtn.title = `Remove ${labelText}`;
+      removeBtn.setAttribute('aria-label', `Remove ${labelText}`);
       removeBtn.addEventListener('click', () => {
         if (!confirm(`Remove ${labelText}?`)) return;
         extraTemplateShifts.splice(extraIndex, 1);
