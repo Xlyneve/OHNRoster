@@ -642,42 +642,62 @@ body::after {
   margin: 0;
 }
 
-.template-name-input {
-  flex: 1 1 auto;
-  min-width: 0;
-  padding: 5px 7px;
-  border: 1px solid rgba(0, 0, 0, 0.18);
-  border-radius: 7px;
-  font-size: 0.78rem;
-  color: #000;
-  -webkit-text-fill-color: #000;
-  background: rgba(255, 255, 255, 0.82);
+.template-actions {
+  position: relative;
+  flex: 0 0 auto;
 }
 
-.template-name-input:disabled {
-  color: #000;
-  -webkit-text-fill-color: #000;
-  opacity: 1;
-}
-
-.btn.remove-template-btn {
+.btn.template-action-btn {
   flex: 0 0 24px;
   width: 24px;
   height: 24px;
   padding: 0;
   border: 1px solid rgba(0, 0, 0, 0.14);
   border-radius: 7px;
-  background: rgba(255, 255, 255, 0.72);
-  color: #555;
+  background: #fff3a6;
+  color: #6b5200;
   box-shadow: none;
-  font-size: 1rem;
+  font-size: 0.88rem;
   line-height: 1;
 }
 
-.btn.remove-template-btn:hover {
-  background: rgba(255, 255, 255, 0.96);
-  color: #111;
+.btn.template-action-btn:hover {
+  background: #ffe66d;
   box-shadow: none;
+}
+
+.template-actions-menu {
+  display: none;
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  z-index: 20;
+  min-width: 112px;
+  padding: 4px;
+  border: 1px solid rgba(0, 0, 0, 0.14);
+  border-radius: 8px;
+  background: #fffdf5;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.16);
+}
+
+.template-actions-menu.open {
+  display: grid;
+  gap: 3px;
+}
+
+.template-actions-menu button {
+  padding: 6px 8px;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  color: #222;
+  cursor: pointer;
+  text-align: left;
+  font-size: 0.76rem;
+}
+
+.template-actions-menu button:hover {
+  background: #fff1a8;
 }
 
 .add-template-btn {
@@ -1847,16 +1867,10 @@ footer {
         <input type="text" id="newNurseName" placeholder="Add Nurse">
         <button id="addNurseBtn" class="btn">Add</button>
       </div>
-<div class="template-heading-row">
-  <h4 id="templateHeading1">Template Day 1</h4>
-  <input id="templateName1" class="template-name-input" type="text" placeholder="Add template name" aria-label="Name for Template 1">
-</div>
+<div id="templateHeadingRow1" class="template-heading-row"></div>
 <div id="templateDay1" class="day" style="min-height:120px;"></div>
 
-<div class="template-heading-row">
-  <h4 id="templateHeading2">Template Day 2</h4>
-  <input id="templateName2" class="template-name-input" type="text" placeholder="Add template name" aria-label="Name for Template 2">
-</div>
+<div id="templateHeadingRow2" class="template-heading-row"></div>
 <div id="templateDay2" class="day" style="min-height:120px;"></div>
 <div id="extraTemplateContainer"></div>
 <button id="addTemplateBtn" class="btn add-template-btn" type="button">+ Add Template</button>
@@ -1975,10 +1989,8 @@ const closeAuthModalBtn = document.getElementById('closeAuthModalBtn');
   const addNurseBtn = document.getElementById('addNurseBtn');
   const addTemplateBtn = document.getElementById('addTemplateBtn');
   const extraTemplateContainer = document.getElementById('extraTemplateContainer');
-  const templateName1 = document.getElementById('templateName1');
-  const templateName2 = document.getElementById('templateName2');
-  const templateHeading1 = document.getElementById('templateHeading1');
-  const templateHeading2 = document.getElementById('templateHeading2');
+  const templateHeadingRow1 = document.getElementById('templateHeadingRow1');
+  const templateHeadingRow2 = document.getElementById('templateHeadingRow2');
   const nursePanelToggle = document.getElementById('nursePanelToggle');
   const weekdaysScroll = document.getElementById('weekdaysScroll');
 const gridScroll = document.getElementById('gridScroll');
@@ -3186,15 +3198,13 @@ async function saveTemplate() {
 }
 
 function getTemplateLabel(templateIndex) {
-  const templateNumber = templateIndex + 1;
   const name = String(templateNames[templateIndex] || '').trim();
-  return name ? `Template ${templateNumber}: ${name}` : `Template ${templateNumber}`;
+  return name || 'Unnamed template';
 }
 
 function getTemplateHeading(templateIndex) {
-  const templateNumber = templateIndex + 1;
   const name = String(templateNames[templateIndex] || '').trim();
-  return name ? `Template Day ${templateNumber} — ${name}` : `Template Day ${templateNumber}`;
+  return name || 'Unnamed template';
 }
 
 function updateTemplateName(templateIndex, value) {
@@ -3204,17 +3214,70 @@ function updateTemplateName(templateIndex, value) {
   saveTemplate();
 }
 
+function editTemplateName(templateIndex) {
+  if (!canEdit) return;
+  const currentName = String(templateNames[templateIndex] || '');
+  const newName = prompt('Enter template name:', currentName);
+  if (newName === null) return;
+  updateTemplateName(templateIndex, newName);
+}
+
+function renderTemplateHeading(headingRow, templateIndex, onRemove = null) {
+  headingRow.innerHTML = '';
+
+  const heading = document.createElement('h4');
+  heading.textContent = getTemplateHeading(templateIndex);
+  headingRow.appendChild(heading);
+
+  if (!canEdit) return;
+
+  const actions = document.createElement('div');
+  actions.className = 'template-actions';
+
+  const actionBtn = document.createElement('button');
+  actionBtn.type = 'button';
+  actionBtn.className = 'btn template-action-btn';
+  actionBtn.textContent = '💡';
+  actionBtn.title = 'Template options';
+  actionBtn.setAttribute('aria-label', `Options for ${getTemplateLabel(templateIndex)}`);
+
+  const menu = document.createElement('div');
+  menu.className = 'template-actions-menu';
+
+  const editBtn = document.createElement('button');
+  editBtn.type = 'button';
+  editBtn.textContent = 'Edit name';
+  editBtn.addEventListener('click', () => editTemplateName(templateIndex));
+  menu.appendChild(editBtn);
+
+  if (onRemove) {
+    const removeBtn = document.createElement('button');
+    removeBtn.type = 'button';
+    removeBtn.textContent = 'Remove';
+    removeBtn.addEventListener('click', onRemove);
+    menu.appendChild(removeBtn);
+  }
+
+  actionBtn.addEventListener('click', (event) => {
+    event.stopPropagation();
+    document.querySelectorAll('.template-actions-menu.open').forEach(openMenu => {
+      if (openMenu !== menu) openMenu.classList.remove('open');
+    });
+    menu.classList.toggle('open');
+  });
+
+  actions.appendChild(actionBtn);
+  actions.appendChild(menu);
+  headingRow.appendChild(actions);
+}
+
 function renderAllTemplates() {
   const templateCount = 2 + extraTemplateShifts.length;
   while (templateNames.length < templateCount) templateNames.push('');
   if (templateNames.length > templateCount) templateNames.length = templateCount;
 
-  templateName1.value = templateNames[0] || '';
-  templateName2.value = templateNames[1] || '';
-  templateName1.disabled = !canEdit;
-  templateName2.disabled = !canEdit;
-  templateHeading1.textContent = getTemplateHeading(0);
-  templateHeading2.textContent = getTemplateHeading(1);
+  renderTemplateHeading(templateHeadingRow1, 0);
+  renderTemplateHeading(templateHeadingRow2, 1);
 
   renderTemplateDay(templateDay1, templateShifts1, getTemplateLabel(0));
   renderTemplateDay(templateDay2, templateShifts2, getTemplateLabel(1));
@@ -3228,38 +3291,13 @@ function renderAllTemplates() {
     const headingRow = document.createElement('div');
     headingRow.className = 'template-heading-row';
 
-    const heading = document.createElement('h4');
-    heading.textContent = getTemplateHeading(templateIndex);
-    headingRow.appendChild(heading);
-
-    const nameInput = document.createElement('input');
-    nameInput.type = 'text';
-    nameInput.className = 'template-name-input';
-    nameInput.placeholder = 'Add template name';
-    nameInput.value = templateNames[templateIndex] || '';
-    nameInput.disabled = !canEdit;
-    nameInput.setAttribute('aria-label', `Name for Template ${templateNumber}`);
-    nameInput.addEventListener('change', () => {
-      updateTemplateName(templateIndex, nameInput.value);
+    renderTemplateHeading(headingRow, templateIndex, () => {
+      if (!confirm(`Remove ${labelText}?`)) return;
+      extraTemplateShifts.splice(extraIndex, 1);
+      templateNames.splice(templateIndex, 1);
+      renderAllTemplates();
+      saveTemplate();
     });
-    headingRow.appendChild(nameInput);
-
-    if (canEdit) {
-      const removeBtn = document.createElement('button');
-      removeBtn.type = 'button';
-      removeBtn.className = 'btn remove-template-btn';
-      removeBtn.textContent = '×';
-      removeBtn.title = `Remove ${labelText}`;
-      removeBtn.setAttribute('aria-label', `Remove ${labelText}`);
-      removeBtn.addEventListener('click', () => {
-        if (!confirm(`Remove ${labelText}?`)) return;
-        extraTemplateShifts.splice(extraIndex, 1);
-        templateNames.splice(templateIndex, 1);
-        renderAllTemplates();
-        saveTemplate();
-      });
-      headingRow.appendChild(removeBtn);
-    }
 
     const templateEl = document.createElement('div');
     templateEl.id = `templateDay${templateNumber}`;
@@ -3280,9 +3318,6 @@ addTemplateBtn.addEventListener('click', () => {
   renderAllTemplates();
   saveTemplate();
 });
-
-templateName1.addEventListener('change', () => updateTemplateName(0, templateName1.value));
-templateName2.addEventListener('change', () => updateTemplateName(1, templateName2.value));
 
 // ---------------- Render Template ----------------
 function renderTemplateDay(templateEl, templateShifts, labelText) {
@@ -3305,12 +3340,8 @@ function renderTemplateDay(templateEl, templateShifts, labelText) {
   // ---------- Header ----------
   const header = document.createElement('div');
   header.style.display = 'flex';
-  header.style.justifyContent = 'space-between';
+  header.style.justifyContent = 'flex-end';
   header.style.alignItems = 'center';
-
-  const label = document.createElement('div');
-  label.className = 'day-number';
-  label.textContent = labelText;
 
   const dragHandle = document.createElement('span');
   dragHandle.textContent = '⇅';
@@ -3327,7 +3358,6 @@ function renderTemplateDay(templateEl, templateShifts, labelText) {
     });
   }
 
-  header.appendChild(label);
   header.appendChild(dragHandle);
   templateEl.appendChild(header);
 
