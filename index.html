@@ -477,6 +477,22 @@ body::after {
   display: none;
 }
 
+#logoutProgress {
+  border: 0;
+  border-radius: 16px;
+  padding: 28px;
+  max-width: min(360px, 85vw);
+  text-align: center;
+  color: #333;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.2);
+}
+
+#logoutProgress::backdrop {
+  background: rgba(0,0,0,0.35);
+}
+
+#logoutProgress p { margin: 8px 0; }
+
 .auth-modal {
   position: fixed;
   inset: 0;
@@ -1940,6 +1956,11 @@ footer {
 </div> <!-- /#zoomRoot -->
 
 
+<dialog id="logoutProgress" aria-labelledby="logoutProgressTitle" aria-describedby="logoutProgressDetail" aria-busy="true">
+  <p id="logoutProgressTitle" role="status" aria-live="polite">Saving changes before logging out…</p>
+  <p id="logoutProgressDetail">Please wait. This will close automatically when finished.</p>
+</dialog>
+
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
   import {
@@ -2114,12 +2135,19 @@ closeAuthModal();
 
   logoutBtn.addEventListener('click', async () => {
     logoutBtn.disabled = true;
+    const progress = document.getElementById('logoutProgress');
+    const progressTitle = document.getElementById('logoutProgressTitle');
+    progressTitle.textContent = pendingSaves.size
+      ? 'Saving changes before logging out…'
+      : 'Logging out…';
+    progress.showModal();
     try {
       await Promise.all([...pendingSaves]);
       if (saveFailed) {
         alert('Changes have not been saved. Retry the edit before logging out.');
         return;
       }
+      progressTitle.textContent = 'Logging out…';
       await signOut(auth);
       currentUser = null;
       updateUIOnAuth();
@@ -2128,8 +2156,13 @@ closeAuthModal();
       console.error("Logout failed:", error);
       alert("Logout failed. Please try again.");
     } finally {
+      progress.close();
       logoutBtn.disabled = false;
     }
+  });
+
+  document.getElementById('logoutProgress').addEventListener('cancel', (event) => {
+    event.preventDefault();
   });
 
   onAuthStateChanged(auth, (user) => {
