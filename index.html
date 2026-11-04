@@ -2113,7 +2113,13 @@ closeAuthModal();
   });
 
   logoutBtn.addEventListener('click', async () => {
+    logoutBtn.disabled = true;
     try {
+      await Promise.all([...pendingSaves]);
+      if (saveFailed) {
+        alert('Changes have not been saved. Retry the edit before logging out.');
+        return;
+      }
       await signOut(auth);
       currentUser = null;
       updateUIOnAuth();
@@ -2121,6 +2127,8 @@ closeAuthModal();
     } catch (error) {
       console.error("Logout failed:", error);
       alert("Logout failed. Please try again.");
+    } finally {
+      logoutBtn.disabled = false;
     }
   });
 
@@ -2195,10 +2203,38 @@ function showRosterStatus(message) {
 }
 
 function hideRosterStatus() {
+  if (pendingSaves.size || saveFailed) return;
   if (!rosterStatus) return;
   rosterStatus.textContent = '';
   rosterStatus.classList.remove('show');
 }
+  const pendingSaves = new Set();
+  let saveFailed = false;
+
+  async function saveRosterDocument(data) {
+    showRosterStatus('Saving changes...');
+    const write = setDoc(doc(db, "nursesRoster", "main"), data, { merge: true });
+    pendingSaves.add(write);
+    try {
+      await write;
+      saveFailed = false;
+    } catch (error) {
+      saveFailed = true;
+      throw error;
+    } finally {
+      pendingSaves.delete(write);
+      showRosterStatus(saveFailed
+        ? 'Changes could not be saved. Check your connection and retry the edit.'
+        : pendingSaves.size ? 'Saving changes...' : 'All changes saved.');
+    }
+  }
+
+  window.addEventListener('beforeunload', (event) => {
+    if (!pendingSaves.size && !saveFailed) return;
+    event.preventDefault();
+    event.returnValue = '';
+  });
+
   /** ---------- Firebase Data ---------- **/
  function loadData() {
   showRosterStatus("Loading roster...");
@@ -2303,7 +2339,7 @@ function getNurseHierarchyIndex(nurseName) {
     return;
   }
   try {
-    await setDoc(doc(db, "nursesRoster", "main"), { roster, nurses }, { merge: true });
+    await saveRosterDocument({ roster, nurses });
   } catch (error) {
     console.error("Error saving data:", error);
     alert("Failed to save data. Check console.");
