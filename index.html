@@ -1895,7 +1895,15 @@ footer {
 
 .calendar .day:nth-child(7n) { border-right: 0; }
 .calendar .day.weekend { background: #faf9f7; }
-.calendar .day.current-week:not(.today):not(.holiday) { background: #fffaf4; }
+.calendar .day.current-week:not(.today):not(.holiday) {
+  background: #fffaf4;
+  border: 0;
+  border-right: 1px solid #e9e6e1;
+  border-bottom: 1px solid #e9e6e1;
+}
+.calendar .day.current-week:not(.today):not(.holiday):nth-child(7n) {
+  border-right: 0;
+}
 .calendar .day.holiday { background: #fff8dc; }
 .calendar .day.today {
   background: #fff5e9;
