@@ -1831,6 +1831,110 @@ footer {
 }
 
 
+/* One calendar surface with quiet dividers instead of stacked cards. */
+.calendar {
+  background: #fff;
+  border: 1px solid #e6e2dc;
+  border-radius: 12px;
+  box-shadow: 0 4px 18px rgba(65,55,45,0.06);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+.calendar-top-sticky {
+  background: #fff;
+  border: 0;
+  border-bottom: 1px solid #e6e2dc;
+  border-radius: 0;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+.calendar .weekdays,
+.calendar .calendar-grid {
+  gap: 0;
+}
+
+.calendar .weekdays {
+  margin-bottom: 0;
+  background: #fff;
+}
+
+.calendar .weekdays div,
+.calendar .weekdays div:nth-child(6),
+.calendar .weekdays div:nth-child(7) {
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  color: #69645e;
+}
+
+.calendar .weekdays div:nth-child(6),
+.calendar .weekdays div:nth-child(7) {
+  color: #a76635;
+}
+
+.calendar .calendar-grid-scroll {
+  margin-top: 0;
+  padding-top: 0;
+}
+
+.calendar .day {
+  border: 0;
+  border-right: 1px solid #e9e6e1;
+  border-bottom: 1px solid #e9e6e1;
+  border-radius: 0;
+  background: #fff;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  transform: none;
+}
+
+.calendar .day:nth-child(7n) { border-right: 0; }
+.calendar .day.weekend { background: #faf9f7; }
+.calendar .day.current-week:not(.today):not(.holiday) { background: #fffaf4; }
+.calendar .day.holiday { background: #fff8dc; }
+.calendar .day.today {
+  background: #fff5e9;
+  box-shadow: inset 0 3px 0 #d9822b;
+}
+
+.calendar .day.today::before,
+.calendar .day.holiday::before { display: none; }
+
+.calendar .day.today .day-number {
+  width: 28px;
+  height: 28px;
+  font-size: 1rem;
+  background: #a85e20;
+  border: 0;
+  box-shadow: none;
+}
+
+.calendar .day.holiday,
+.calendar .day.today:not(.holiday) { padding-top: 26px; }
+
+.calendar .day.holiday::after,
+.calendar .day.today:not(.holiday)::after {
+  top: 6px;
+  right: 8px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: #8b651c;
+  font-size: 0.56rem;
+  box-shadow: none;
+  transform: none;
+}
+
+.calendar .day.drag-over {
+  background: #fff0d9;
+  box-shadow: inset 0 0 0 2px #d9822b;
+}
 </style>
 </head>
 <body>
