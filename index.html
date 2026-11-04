@@ -177,7 +177,7 @@ body::after {
   border: 1px solid rgba(255,255,255,0.72);
   border-radius: 11px;
 
-  padding: 7px 8px 7px 12px;
+  padding: 7px 8px;
 
   font-size: 0.82rem;
   line-height: 1.25;
@@ -189,66 +189,6 @@ body::after {
     0 4px 12px rgba(0,0,0,0.06),
     inset 0 0 0 1px rgba(255,255,255,0.42);
 
-  animation: reminderPulse 2.4s ease-in-out infinite;
-}
-
-.notice-card:nth-child(2n) { animation-delay: 0.45s; }
-.notice-card:nth-child(3n) { animation-delay: 0.9s; }
-
-@keyframes reminderPulse {
-  0%, 100% {
-    box-shadow:
-      0 4px 12px rgba(0,0,0,0.06),
-      inset 0 0 0 1px rgba(255,255,255,0.42);
-  }
-  50% {
-    box-shadow:
-      0 5px 18px rgba(255, 152, 0, 0.42),
-      0 0 16px rgba(255, 184, 77, 0.38),
-      0 0 0 3px rgba(255, 152, 0, 0.3),
-      inset 0 0 0 1px rgba(255,255,255,0.56);
-  }
-}
-
-.notice-card.empty,
-.notice-card:has(.notice-card-text.editing) {
-  animation: none;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .notice-card {
-    animation: none;
-  }
-}
-
-.notice-card::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 10px;
-  bottom: 10px;
-  width: 4px;
-  border-radius: 999px;
-}
-
-.notice-0::before {
-  background: #feffa3;
-  box-shadow: 0 0 12px rgba(254,255,163,0.9);
-}
-
-.notice-1::before {
-  background: #ffd6ee;
-  box-shadow: 0 0 12px rgba(255,214,238,0.9);
-}
-
-.notice-2::before {
-  background: #dbdcff;
-  box-shadow: 0 0 12px rgba(219,220,255,0.9);
-}
-
-.notice-3::before {
-  background: #f55cff;
-  box-shadow: 0 0 12px rgba(245,92,255,0.7);
 }
 
 .notice-card.empty {
@@ -2521,9 +2461,9 @@ function renderNoticeBoard() {
       </div>
     `;
   } else {
-    noticeList.innerHTML = nurseReminders.map((reminder, index) => {
+    noticeList.innerHTML = nurseReminders.map((reminder) => {
   return `
-    <div class="notice-card notice-${index % 4}" data-id="${reminder.id}">
+    <div class="notice-card" data-id="${reminder.id}">
       <div class="notice-card-text" id="noticeText-${reminder.id}" contenteditable="false">${escapeHtml(reminder.text)}</div>
 
       <div class="notice-inline-actions" id="noticeActions-${reminder.id}" style="display:none;">
