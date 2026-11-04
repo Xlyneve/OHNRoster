@@ -2049,6 +2049,7 @@ footer {
 <dialog id="logoutProgress" aria-labelledby="logoutProgressTitle" aria-describedby="logoutProgressDetail" aria-busy="true">
   <p id="logoutProgressTitle" role="status" aria-live="polite">Saving changes before logging out…</p>
   <p id="logoutProgressDetail">Please wait. This will close automatically when finished.</p>
+  <button id="returnToRoster" type="button" class="btn">Return to roster</button>
 </dialog>
 
 <script type="module">
@@ -2227,17 +2228,38 @@ closeAuthModal();
     logoutBtn.disabled = true;
     const progress = document.getElementById('logoutProgress');
     const progressTitle = document.getElementById('logoutProgressTitle');
+    const detail = document.getElementById('logoutProgressDetail');
+    const returnButton = document.getElementById('returnToRoster');
+    let cancelLogout;
+    let cancelled = false;
+    const cancellation = new Promise(resolve => { cancelLogout = resolve; });
+    const returnToRoster = () => {
+      cancelled = true;
+      cancelLogout();
+    };
+    returnButton.onclick = returnToRoster;
+    returnButton.disabled = false;
+    detail.textContent = 'Please wait. Returning to the roster keeps you signed in while saving continues.';
     progressTitle.textContent = pendingSaves.size
       ? 'Saving changes before logging out…'
       : 'Logging out…';
     progress.showModal();
+    const slowLogoutTimer = setTimeout(() => {
+      if (!pendingSaves.size) return;
+      progressTitle.textContent = 'Taking longer than expected—waiting for connection';
+      detail.textContent = 'Your changes are still waiting for confirmation. You can return to the roster while saving continues.';
+    }, 10000);
     try {
-      await Promise.all([...pendingSaves]);
+      while (pendingSaves.size && !cancelled) {
+        await Promise.race([Promise.all([...pendingSaves]), cancellation]);
+      }
+      if (cancelled) return;
       if (saveFailed) {
         alert('Changes have not been saved. Retry the edit before logging out.');
         return;
       }
       progressTitle.textContent = 'Logging out…';
+      returnButton.disabled = true;
       await signOut(auth);
       currentUser = null;
       updateUIOnAuth();
@@ -2246,6 +2268,8 @@ closeAuthModal();
       console.error("Logout failed:", error);
       alert("Logout failed. Please try again.");
     } finally {
+      clearTimeout(slowLogoutTimer);
+      returnButton.onclick = null;
       progress.close();
       logoutBtn.disabled = false;
     }
@@ -2332,23 +2356,49 @@ function hideRosterStatus() {
   rosterStatus.classList.remove('show');
 }
   const pendingSaves = new Set();
+  const pendingSaveTimes = new Map();
+  const failedSaveScopes = new Set();
   let saveFailed = false;
 
-  async function saveRosterDocument(data) {
-    showRosterStatus('Saving changes...');
-    const write = setDoc(doc(db, "nursesRoster", "main"), data, { merge: true });
-    pendingSaves.add(write);
-    try {
-      await write;
-      saveFailed = false;
-    } catch (error) {
-      saveFailed = true;
-      throw error;
-    } finally {
-      pendingSaves.delete(write);
+  function refreshSaveStatus() {
+    if (pendingSaves.size) {
+      const slow = [...pendingSaveTimes.values()].some(start => performance.now() - start >= 10000);
+      showRosterStatus(slow
+        ? 'Taking longer than expected—waiting for connection. Keep this page open.'
+        : 'Saving…');
+    } else {
       showRosterStatus(saveFailed
         ? 'Changes could not be saved. Check your connection and retry the edit.'
-        : pendingSaves.size ? 'Saving changes...' : 'All changes saved.');
+        : 'Saved');
+    }
+  }
+
+  async function saveRosterDocument(data, options = { merge: true }, scope = Object.keys(data).join(',')) {
+    const started = performance.now();
+    // Capture the edit now; later UI changes must not change this request.
+    const payload = JSON.parse(JSON.stringify(data));
+    const bytes = new TextEncoder().encode(JSON.stringify(payload)).length;
+    const write = setDoc(doc(db, "nursesRoster", "main"), payload, options);
+    pendingSaves.add(write);
+    pendingSaveTimes.set(write, started);
+    refreshSaveStatus();
+    const slowTimer = setTimeout(refreshSaveStatus, 10000);
+    try {
+      await write;
+      failedSaveScopes.delete(scope);
+      console.info('Roster save acknowledged', {
+        milliseconds: Math.round(performance.now() - started),
+        bytes
+      });
+    } catch (error) {
+      failedSaveScopes.add(scope);
+      throw error;
+    } finally {
+      clearTimeout(slowTimer);
+      pendingSaves.delete(write);
+      pendingSaveTimes.delete(write);
+      saveFailed = failedSaveScopes.size > 0;
+      refreshSaveStatus();
     }
   }
 
@@ -2456,13 +2506,22 @@ function getNurseHierarchyIndex(nurseName) {
   return index === -1 ? 999 : index;
 }
 
-  async function saveData() {
+  async function saveData(key) {
   if (!canEdit) {
     alert("You do not have permission to edit.");
     return;
   }
   try {
-    await saveRosterDocument({ roster, nurses });
+    if (key !== undefined) {
+      // Replace exactly this day, preserving every other date and staff list.
+      await saveRosterDocument(
+        { roster: { [key]: roster[key] } },
+        { mergeFields: [`roster.${key}`] },
+        `day:${key}`
+      );
+    } else {
+      await saveRosterDocument({ nurses });
+    }
   } catch (error) {
     console.error("Error saving data:", error);
     alert("Failed to save data. Check console.");
@@ -2537,9 +2596,9 @@ async function saveReminderList() {
   }
 
   try {
-    await setDoc(doc(db, "nursesRoster", "main"), {
+    await saveRosterDocument({
       nurseReminders
-    }, { merge: true });
+    });
 
     renderNoticeBoard();
   } catch (error) {
@@ -2920,7 +2979,7 @@ if (leaveDisplay.isLeave) {
       if (newTime !== null) {
         const trimmed = newTime.trim();
         currentShift.time = trimmed || "Shift";
-        saveData();
+        saveData(key);
         renderCalendar();
       }
     });
@@ -2954,7 +3013,7 @@ if (leaveDisplay.isLeave) {
     }
 
     currentShift.leaveType = normalized;
-    saveData();
+    saveData(key);
     renderCalendar();
   });
 
@@ -2969,7 +3028,7 @@ if (leaveDisplay.isLeave) {
       if (!confirm(`Delete shift for ${shift.name}?`)) return;
 
       roster[key].shifts.splice(shiftIndex, 1);
-      saveData();
+      saveData(key);
       renderCalendar();
     });
 
@@ -3015,7 +3074,7 @@ function renderDayCell(year, month, day) {
     const note = prompt('Enter notes for this day:', roster[key].notes || '');
     if (note !== null) {
       roster[key].notes = note;
-      saveData();
+      saveData(key);
       renderCalendar();
     }
   }
@@ -3026,7 +3085,7 @@ function renderDayCell(year, month, day) {
 
     if (e.shiftKey) {
       roster[key].isHoliday = !roster[key].isHoliday;
-      saveData();
+      saveData(key);
       renderCalendar();
       return;
     }
@@ -3100,7 +3159,7 @@ function renderDayCell(year, month, day) {
         time: time.trim(),
         leaveType: ''
       });
-      saveData();
+      saveData(key);
       renderCalendar();
     });
   }
@@ -3128,7 +3187,7 @@ function renderDayCell(year, month, day) {
           time: "Shift",
           leaveType: ""
         });
-        saveData();
+        saveData(key);
         renderCalendar();
         return;
       }
@@ -3137,7 +3196,7 @@ function renderDayCell(year, month, day) {
       if (dayShiftsData) {
         const shifts = JSON.parse(dayShiftsData);
         roster[key].shifts = roster[key].shifts.concat(shifts.map(s => ({ ...s })));
-        saveData();
+        saveData(key);
         renderCalendar();
         return;
       }
@@ -3146,7 +3205,7 @@ function renderDayCell(year, month, day) {
       if (templateShiftData) {
         const shift = JSON.parse(templateShiftData);
         roster[key].shifts.push(shift);
-        saveData();
+        saveData(key);
         renderCalendar();
         return;
       }
@@ -3155,7 +3214,7 @@ function renderDayCell(year, month, day) {
       if (allTemplateShiftsData) {
         const shifts = JSON.parse(allTemplateShiftsData);
         roster[key].shifts = roster[key].shifts.concat(shifts.map(s => ({ ...s })));
-        saveData();
+        saveData(key);
         renderCalendar();
         return;
       }
@@ -3164,7 +3223,7 @@ function renderDayCell(year, month, day) {
       if (shiftData) {
         const shift = JSON.parse(shiftData);
         roster[key].shifts.push(shift);
-        saveData();
+        saveData(key);
         renderCalendar();
       }
     });
@@ -3338,7 +3397,7 @@ async function saveTemplate() {
   if (!canEdit) return;
 
   try {
-    await setDoc(doc(db, "nursesRoster", "main"), {
+    await saveRosterDocument({
       templateShifts1: templateShifts1.map(s => ({ ...s })),
       templateShifts2: templateShifts2.map(s => ({ ...s })),
       templateNames: templateNames.map(name => String(name || '').trim()),
@@ -3347,7 +3406,7 @@ async function saveTemplate() {
       extraTemplateShifts: extraTemplateShifts.map(shifts => ({
         shifts: shifts.map(shift => ({ ...shift }))
       }))
-    }, { merge: true });
+    });
   } catch (err) {
     console.error("Failed to save template:", err);
     alert("Failed to save template. Check your connection and try again.");
